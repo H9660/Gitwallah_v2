@@ -1,0 +1,27 @@
+FROM ubuntu:22.04
+
+# Avoid interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install only what players need
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    nano \
+    less \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure git defaults inside the container
+RUN git config --system user.email "player@gitdojo.dev" && \
+    git config --system user.name "Git Player" && \
+    git config --system init.defaultBranch main && \
+    git config --system safe.directory /workspace
+
+# Create non-root user
+RUN useradd -m -s /bin/bash player
+USER player
+WORKDIR /workspace
+
+# Friendly prompt so the user knows they're in a sandbox
+ENV PS1="\\[\\033[1;32m\\]gitdojo\\[\\033[0m\\]:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]$ "

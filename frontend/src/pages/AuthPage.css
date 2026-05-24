@@ -1,0 +1,159 @@
+.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* ── Floating Git Snippets Background ────────────────────── */
+.auth-bg-snippets {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.auth-snippet {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: rgba(108, 99, 255, 0.12);
+    white-space: nowrap;
+    animation: snippet-float linear infinite;
+    user-select: none;
+    letter-spacing: 0.02em;
+}
+
+.auth-snippet--1  { top: 8%;   left: 5%;   animation-duration: 18s; animation-delay: 0s;    font-size: 0.7rem;  color: rgba(108,99,255,0.14); }
+.auth-snippet--2  { top: 18%;  right: 8%;  animation-duration: 22s; animation-delay: -3s;   font-size: 0.8rem;  color: rgba(167,139,250,0.1); }
+.auth-snippet--3  { top: 35%;  left: 2%;   animation-duration: 20s; animation-delay: -7s;   font-size: 0.72rem; color: rgba(34,197,94,0.1); }
+.auth-snippet--4  { top: 50%;  right: 3%;  animation-duration: 16s; animation-delay: -2s;   font-size: 0.68rem; color: rgba(108,99,255,0.11); }
+.auth-snippet--5  { top: 65%;  left: 8%;   animation-duration: 24s; animation-delay: -10s;  font-size: 0.75rem; color: rgba(234,179,8,0.08); }
+.auth-snippet--6  { top: 78%;  right: 12%; animation-duration: 19s; animation-delay: -5s;   font-size: 0.7rem;  color: rgba(167,139,250,0.09); }
+.auth-snippet--7  { top: 25%;  left: 12%;  animation-duration: 21s; animation-delay: -8s;   font-size: 0.65rem; color: rgba(108,99,255,0.1); }
+.auth-snippet--8  { top: 88%;  left: 3%;   animation-duration: 17s; animation-delay: -1s;   font-size: 0.72rem; color: rgba(34,197,94,0.08); }
+.auth-snippet--9  { top: 42%;  right: 5%;  animation-duration: 23s; animation-delay: -12s;  font-size: 0.68rem; color: rgba(108,99,255,0.09); }
+.auth-snippet--10 { top: 12%;  left: 60%;  animation-duration: 25s; animation-delay: -6s;   font-size: 0.7rem;  color: rgba(167,139,250,0.08); }
+
+@keyframes snippet-float {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-30px) translateX(15px) rotate(1deg);
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-60px) translateX(-10px) rotate(-1deg);
+        opacity: 0;
+    }
+}
+
+/* ── Git Branch Tree SVG ─────────────────────────────────── */
+.auth-branch-tree {
+    position: absolute;
+    width: 160px;
+    height: 400px;
+    opacity: 0.4;
+    animation: tree-drift 20s ease-in-out infinite alternate;
+}
+
+/* Position tree on left side */
+.auth-page .auth-branch-tree {
+    left: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes tree-drift {
+    0% { transform: translateY(-50%) scale(1); opacity: 0.3; }
+    50% { transform: translateY(-52%) scale(1.03); opacity: 0.5; }
+    100% { transform: translateY(-48%) scale(0.98); opacity: 0.35; }
+}
+
+/* Duplicate tree on right for wider screens */
+@media (min-width: 900px) {
+    .auth-page .auth-bg-snippets::after {
+        content: '';
+        position: absolute;
+        right: 10%;
+        top: 15%;
+        width: 120px;
+        height: 350px;
+        background:
+            radial-gradient(circle at 50% 20%, rgba(108,99,255,0.06) 0%, transparent 60%),
+            radial-gradient(circle at 30% 60%, rgba(167,139,250,0.04) 0%, transparent 50%),
+            radial-gradient(circle at 70% 80%, rgba(34,197,94,0.03) 0%, transparent 40%);
+        animation: tree-drift 25s ease-in-out infinite alternate-reverse;
+        opacity: 0.6;
+    }
+}
+
+/* ── Auth Tabs ───────────────────────────────────────────── */
+.auth-tabs {
+    display: flex;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-sans);
+}
+
+.auth-tab+.auth-tab {
+    border-left: 1px solid var(--border);
+}
+
+.auth-tab--active {
+    background: var(--accent-dim);
+    color: var(--accent2);
+}
+
+.auth-error {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+}
+
+.auth-link {
+    background: none;
+    border: none;
+    color: var(--accent2);
+    font-size: inherit;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0;
+    text-decoration: underline;
+}

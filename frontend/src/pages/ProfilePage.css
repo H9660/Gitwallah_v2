@@ -1,0 +1,113 @@
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+}
+
+.profile-username {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    gap: 0.3rem;
+    min-height: 140px;
+}
+
+.stat-card__icon {
+    font-size: 1.75rem;
+}
+
+.stat-card__value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent2);
+    line-height: 1;
+}
+
+.stat-card__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-card__sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.profile-error {
+    background: var(--red-dim);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--red);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+.history-table-wrap {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+}
+
+.history-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover td {
+    background: var(--bg-card2);
+}
+
+.history-title {
+    font-weight: 600;
+    max-width: 260px;
+}

@@ -1,0 +1,321 @@
+/* ══════════════════════════════════════════════════════════
+   ProblemBuilder — Custom problem creation UI
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Problem card (collapsible) ───────────────────────── */
+.problem-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.problem-card:hover {
+    border-color: var(--border-glow);
+}
+
+.problem-card--expanded {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(108, 99, 255, 0.1);
+}
+
+.problem-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.problem-card__header:hover {
+    background: var(--bg-card2);
+}
+
+.problem-card__number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--accent-dim);
+    color: var(--accent2);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.problem-card__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.problem-card__title-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.problem-card__sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.problem-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.problem-card__chevron {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: transform 0.25s;
+}
+
+.problem-card--expanded .problem-card__chevron {
+    transform: rotate(180deg);
+}
+
+.problem-card__body {
+    padding: 0 1.25rem 1.25rem;
+}
+
+/* ── Sections / Tabs inside the builder ───────────────── */
+.builder-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+}
+
+.builder-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+    margin-bottom: -1px;
+}
+
+.builder-tab:hover {
+    color: var(--text);
+}
+
+.builder-tab--active {
+    color: var(--accent2);
+    border-bottom-color: var(--accent);
+}
+
+/* ── Form sections ────────────────────────────────────── */
+.builder-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.builder-section__title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+}
+
+.builder-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* ── Textarea ─────────────────────────────────────────── */
+.builder-textarea {
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    transition: var(--transition);
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.builder-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.builder-textarea--code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    tab-size: 4;
+}
+
+/* ── File entries ─────────────────────────────────────── */
+.file-entry {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.file-entry__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-card2);
+    border-bottom: 1px solid var(--border);
+}
+
+.file-entry__path {
+    flex: 1;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.file-entry__path:focus {
+    border-color: var(--accent);
+}
+
+.file-entry__content {
+    width: 100%;
+    padding: 0.75rem;
+    background: #0d1117;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+}
+
+.file-entry__delete {
+    background: none;
+    border: none;
+    color: var(--red);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+.file-entry__delete:hover {
+    opacity: 1;
+}
+
+/* ── Test cases ───────────────────────────────────────── */
+.test-case-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: start;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card2);
+}
+
+.test-case-entry .field {
+    gap: 0.25rem;
+}
+
+.test-case-hidden {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    padding-top: 1.5rem;
+}
+
+.test-case-hidden input[type="checkbox"] {
+    accent-color: var(--accent);
+}
+
+/* ── Success criteria ─────────────────────────────────── */
+.criteria-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* ── Hints ────────────────────────────────────────────── */
+.hint-entry {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.hint-entry .input {
+    flex: 1;
+}
+
+/* ── Add buttons ──────────────────────────────────────── */
+.add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--accent2);
+    background: var(--accent-dim);
+    border: 1px dashed rgba(108, 99, 255, 0.4);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    width: fit-content;
+}
+
+.add-btn:hover {
+    background: rgba(108, 99, 255, 0.2);
+    border-color: var(--accent);
+}
+
+/* ── Problem list wrapper ─────────────────────────────── */
+.problem-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+    .builder-row {
+        grid-template-columns: 1fr;
+    }
+    .test-case-entry {
+        grid-template-columns: 1fr;
+    }
+    .criteria-row {
+        grid-template-columns: 1fr;
+    }
+}

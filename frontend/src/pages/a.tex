@@ -1,0 +1,175 @@
+%-------------------------
+% Resume in Latex
+% Author : Sourabh Bajaj (modified)
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,10pt]{article} % reduced font size
+\usepackage{fontawesome} % for icons
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[pdftex]{hyperref}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins (slightly tighter)
+\addtolength{\oddsidemargin}{-0.375in}
+\addtolength{\evensidemargin}{-0.375in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.2in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-3pt}]
+
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \item\small{
+    \textbf{#1:} #2 \vspace{-2pt}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-3pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-3pt}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-7pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+% %----------HEADING-----------------
+% \usepackage{tabularx}
+
+% \usepackage[hidelinks]{hyperref}
+
+% Centered Name
+
+% Contact info with icons in a row
+\begin{center}
+    {\LARGE \textbf{Hussain Lohawala}}
+    \vspace{0.8em}
+
+    \faEnvelope~\href{mailto:lohahussain0@gmail.com}{lohahussain0@gmail.com}
+    \hspace{2em}
+    \faPhone~+91 9660835789
+    \hspace{2em}
+    \faLinkedin~\href{https://www.linkedin.com/in/hussain-lohawala-58b8661b7/}{LinkedIn}
+    \hspace{2em}
+    \faGithub~\href{https://github.com/H9660}{H9660}
+\end{center}
+
+\section{Education}
+\resumeSubHeadingListStart
+  \resumeSubheading{International Institute of Information Technology - Hyderabad}{Gachibowli, Telengana}
+    {Masters of Technology; CGPA: 8.78}{Aug 2025\textbf{ –} present}
+  \resumeSubheading{Chandigarh University}{Mohali, Punjab}
+    {Bachelor of Engineering in Computer Science ; CGPA: 8.00}{Sept 2021 \textbf{–} May 2025}
+\resumeSubHeadingListEnd
+
+\section{Relevant Coursework}
+\resumeSubHeadingListStart
+\item \textbf{Mathematics}: Linear Algebra, Probability and Statistics, Statistical Methods in AI
+\item \textbf{Computer Science}: Data Structures and Algorithms, Distributed Systems, Software Engineering
+\item \textbf{Self Study}: Deep Learning Fundamentals (backpropagation, optimization, CNNs), PyTorch basics, Transformer architecture (via research blogs and annotated implementations)
+\resumeSubHeadingListEnd
+
+
+
+\section{Experience}
+\resumeSubHeadingListStart
+\resumeSubheading{FourKites}{Chennai, India}
+{Software Engineer Intern}{June 2023 \textbf{–} May 2024}
+\resumeItemListStart
+\resumeItem{Rail Tracking} {\textbf{Diagnosed and resolved} 50+ tickets, mitigating P2 bugs affecting top 30 customers and achieving a \textbf{\$30,000/year} cost saving via optimization.}
+\resumeItem{Code Coverage Enhancement} {Increased test coverage from \textbf{33\% to 70.3\%} using Selenium and Virtuoso; \textbf{reduced} test runtime from \textbf{1 hour to 15 minutes.}}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Projects}
+\resumeSubHeadingListStart
+
+\resumeSubItem{\href{https://github.com/H9660/AOS-assignment-3}{Distributed File Sharing System (P2P) | Low-Level System Implementation (C)}}
+   \resumeItemListStart
+    \resumeItem{System Design}
+      {Designed and implemented a peer-to-peer distributed file sharing system supporting authenticated sessions, group-based access control, and concurrent multi-peer downloads.}
+    \resumeItem{Architecture}
+      {Built dual synchronized tracker servers for metadata consistency; implemented custom TCP protocolos, multithreaded clients, and SHA-1 based piece verification for integrity.}
+    \resumeItem{Performance}
+      {Implemented parallel chunk downloads, fault-tolerant peer handling, and efficient piece scheduling to maximize throughput under unreliable network conditions.}
+    \resumeItem{Relevance}
+      {Gained hands-on experience with distributed coordination, concurrency, debugging production-style systems, and performance-oriented design.}
+    \resumeItem{Tech Stack}
+      {C, POSIX APIs, TCP Sockets, Multithreading, SHA-1, Linux System Calls}
+  \resumeItemListEnd
+
+\resumeSubItem{Neural Network From Scratch | Python}
+  \resumeItemListStart
+    \resumeItem{Core Learning Project}
+      {Implemented a small neural network from scratch using NumPy, including forward pass, backpropagation, and gradient descent to classify tabular datasets.}
+    \resumeItem{Experimentation}
+      {Ran controlled experiments on learning rates and initialization strategies; visualized loss curves and model convergence.}
+    \resumeItem{Outcome}
+      {Built intuition for gradients, optimization dynamics, and model debugging beyond high-level frameworks.}
+    \resumeItem{Tech Stack}
+      {Python, NumPy, Matplotlib}
+  \resumeItemListEnd
+
+\resumeSubItem{\href{https://github.com/H9660/GitWallah}{GitWallah – Interactive Git Learning Platform | React, Node.js}}
+  \resumeItemListStart
+    \resumeItem{Gamified Learning}
+      {Developed an interactive educational platform featuring time-based Git challenges and a real-time multiplayer duel mode.}
+    \resumeItem{Progressive Difficulty}
+      {Implemented structured learning paths offering three distinct challenge modes: Beginner, Intermediate, and Advanced.}
+    \resumeItem{AI Validation}
+      {Integrated Large Language Models (LLMs) to dynamically generate challenges, evaluate user's terminal commands, and provide context-aware feedback.}
+    \resumeItem{Tech Stack}
+      {React, Vite, Node.js, WebSockets, Docker, Google Gemini AI}
+  \resumeItemListEnd
+
+
+\resumeSubHeadingListEnd
+\vspace{1pt}
+\section{Technical Skills}
+\resumeSubHeadingListStart
+  \item \textbf{Languages}: Python, C, C++, JavaScript, TypeScript
+  \item \textbf{ML / Data}: NumPy, Pandas, PyTorch (fundamentals), Matplotlib
+  \item \textbf{Systems}: Linux, TCP/IP, Multithreading, Distributed Systems
+  \item \textbf{Tools}: Git, Docker, VS Code, Jupyter
+  \item \textbf{Cloud}: AWS (S3), PostgreSQL
+\resumeSubHeadingListEnd
+
+
+\vspace{1pt}
+
+\end{document}

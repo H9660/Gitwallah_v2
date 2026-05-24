@@ -1,0 +1,1 @@
+1. start a docker container when the problem starts and then make sure that the container lasts till either the time ends or the party exits the system.

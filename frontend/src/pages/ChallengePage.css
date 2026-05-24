@@ -1,0 +1,432 @@
+/* Challenge Page specific styles */
+.challenge-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.challenge-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.challenge-topbar__stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.mini-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mini-stat__value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent2);
+    line-height: 1;
+}
+
+.mini-stat__label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.challenge-topbar__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Difficulty buttons */
+.diff-group,
+.mode-group {
+    display: flex;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.diff-btn,
+.mode-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-sans);
+    white-space: nowrap;
+}
+
+.diff-btn+.diff-btn,
+.mode-btn+.mode-btn {
+    border-left: 1px solid var(--border);
+}
+
+.diff-btn--active,
+.mode-btn--active {
+    background: var(--accent-dim);
+    color: var(--accent2);
+}
+
+.diff-btn:hover:not(.diff-btn--active),
+.mode-btn:hover:not(.mode-btn--active) {
+    background: var(--bg-card2);
+    color: var(--text);
+}
+
+.model-select {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* Split layout */
+.challenge-layout {
+    display: flex;
+    gap: 0; /* Remove gap so resizer acts as separator */
+    flex: 1;
+    min-height: 0;
+}
+
+.challenge-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+    overflow-y: auto; /* allow vertical scroll naturally */
+    overflow-x: hidden;
+    padding: 1rem;
+    position: relative;
+}
+
+/* Custom Drag Resizer */
+.resizer-bar {
+    width: 6px;
+    margin: 0 4px; /* Acts as the gap */
+    background: transparent;
+    cursor: col-resize;
+    border-radius: 3px;
+    transition: background 0.2s;
+    user-select: none;
+    z-index: 10;
+}
+
+.resizer-bar:hover {
+    background: rgba(88, 166, 255, 0.4);
+}
+
+.terminal-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+    padding: 1rem;
+    flex: 1;
+    min-width: 300px;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Challenge content */
+.challenge-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    flex: 1;
+}
+
+.challenge-empty__icon {
+    font-size: 3rem;
+}
+
+.challenge-empty h3 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.challenge-empty p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.challenge-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.challenge-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.challenge-ai-note {
+    font-size: 0.8rem;
+    color: var(--accent2);
+}
+
+.challenge-description {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+}
+
+.challenge-description code {
+    font-family: var(--font-mono);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+/* Specific Git Topic Highlighting */
+code.highlight-git {
+    background: rgba(240, 80, 51, 0.15) !important;
+    color: #f05033 !important; /* Git Orange */
+    border: 1px solid rgba(240, 80, 51, 0.3);
+}
+
+code.highlight-file {
+    background: rgba(86, 212, 221, 0.1) !important;
+    color: var(--brightCyan) !important; 
+    border: 1px solid rgba(86, 212, 221, 0.2);
+}
+
+code.highlight-branch {
+    background: rgba(188, 140, 255, 0.15) !important;
+    color: var(--magenta) !important;
+    border: 1px solid rgba(188, 140, 255, 0.3);
+}
+
+.hints-section {
+    margin-top: 0.25rem;
+}
+
+.hints-list {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-left: 1.2rem;
+}
+
+.hints-list li {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Terminal */
+.terminal-body {
+    flex: 1;
+    background: #0a0c10;
+    border-radius: var(--radius-sm);
+    overflow: auto;
+    position: relative;
+    min-height: 350px;
+    /* height: 0 + flex: 1 forces the container to take remaining space */
+    height: 0;
+}
+
+/* Ensure xterm fills the container and its viewport can scroll */
+.terminal-body .xterm {
+    height: 100%;
+}
+
+.terminal-body .xterm-viewport {
+    overflow-y: auto !important;
+}
+
+.terminal-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.terminal-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.terminal-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--border-glow);
+}
+
+.terminal-status--on .terminal-dot {
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+}
+
+.timer-display {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+/* Action bar */
+.action-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* Custom Select & Spinners */
+.model-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 0.5rem;
+    transition: var(--transition);
+}
+
+.model-select-wrapper:focus-within {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 1px var(--accent2);
+}
+
+.model-select-icon {
+    font-size: 0.9rem;
+    margin-right: 0.3rem;
+    pointer-events: none;
+}
+
+.model-select-custom {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem 0.5rem 0;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    outline: none;
+}
+
+.model-select-custom option {
+    background: var(--bg-card);
+    color: var(--text);
+}
+
+.spinner-large {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(88, 166, 255, 0.2);
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-loading {
+    opacity: 0.8;
+    cursor: wait !important;
+    position: relative;
+}
+
+/* Responsiveness */
+@media (max-width: 800px) {
+    .challenge-page {
+        height: auto;
+        min-height: calc(100vh - 64px);
+    }
+    
+    .challenge-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .challenge-topbar__stats {
+        justify-content: center;
+    }
+    
+    .challenge-topbar__controls {
+        justify-content: center;
+    }
+
+    .challenge-layout {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .challenge-panel {
+        width: 100% !important;
+        max-width: 100%;
+        height: 350px;
+        flex: none;
+    }
+
+    .resizer-bar {
+        /* Hide lateral resizer on mobile */
+        display: none; 
+    }
+
+    .terminal-panel {
+        height: 400px;
+        flex: none;
+    }
+
+    .action-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .action-bar .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}

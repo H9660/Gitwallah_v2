@@ -1,0 +1,394 @@
+/* ══════════════════════════════════════════════════════════
+   ContestAttemptPage — Solving challenges in a contest
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Top bar ──────────────────────────────────────────── */
+.contest-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.contest-topbar__left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.contest-topbar__title {
+    font-size: 1rem;
+    font-weight: 700;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.contest-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.contest-timer {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card2);
+}
+
+.contest-timer--warn {
+    color: var(--yellow);
+    border-color: rgba(234, 179, 8, 0.4);
+    background: var(--yellow-dim);
+    animation: timer-pulse 1s ease-in-out infinite;
+}
+
+.contest-timer--danger {
+    color: var(--red);
+    border-color: rgba(239, 68, 68, 0.4);
+    background: var(--red-dim);
+    animation: timer-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.contest-score-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent2);
+}
+
+/* ── Main layout ──────────────────────────────────────── */
+.contest-layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ── Problem sidebar ──────────────────────────────────── */
+.contest-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.contest-sidebar__header {
+    padding: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+}
+
+.problem-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 1px solid rgba(30, 34, 42, 0.5);
+    font-size: 0.85rem;
+}
+
+.problem-item:hover {
+    background: var(--bg-card2);
+}
+
+.problem-item--active {
+    background: var(--accent-dim);
+    border-left: 3px solid var(--accent);
+}
+
+.problem-item__number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.problem-item--solved .problem-item__number {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.problem-item--failed .problem-item__number {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.problem-item__title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.problem-item__score {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.problem-item--solved .problem-item__score {
+    color: var(--green);
+}
+
+/* ── Center: challenge + terminal ─────────────────────── */
+.contest-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.contest-challenge-area {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.contest-challenge-panel {
+    width: 340px;
+    flex-shrink: 0;
+    padding: 1.25rem;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: var(--bg-card);
+}
+
+.contest-challenge-panel h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.contest-challenge-panel .challenge-description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+}
+
+.contest-hints {
+    margin-top: 1rem;
+}
+
+.contest-hints summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--accent2);
+    font-weight: 600;
+}
+
+.contest-hints ul {
+    margin-top: 0.5rem;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.contest-hints li {
+    margin-bottom: 0.3rem;
+}
+
+.contest-terminal-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.contest-terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: 0.85rem;
+}
+
+.contest-terminal-body {
+    flex: 1;
+    background: #0a0c10;
+    position: relative;
+}
+
+/* ── Terminal user badge ─────────────────────────────── */
+.terminal-user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* ── Live indicator ──────────────────────────────────── */
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ── Leaderboard row animation ───────────────────────── */
+.leaderboard-row {
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.leaderboard-row:hover {
+    background: var(--bg-card2) !important;
+}
+
+/* ── Action bar ───────────────────────────────────────── */
+.contest-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+}
+
+/* ── Model selector ──────────────────────────────────── */
+.model-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.model-selector__label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.model-selector__select {
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: var(--transition);
+    outline: none;
+}
+
+.model-selector__select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.15);
+}
+
+.model-selector__select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Contest over overlay ─────────────────────────────── */
+.contest-over-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: rgba(10, 12, 16, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.contest-over-overlay h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 900px) {
+    .contest-layout {
+        flex-direction: column;
+    }
+
+    .contest-sidebar {
+        width: 100%;
+        max-height: 120px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .contest-sidebar__header {
+        display: none;
+    }
+
+    .problem-item {
+        border-bottom: none;
+        border-right: 1px solid rgba(30, 34, 42, 0.5);
+        white-space: nowrap;
+    }
+
+    .contest-challenge-area {
+        flex-direction: column;
+    }
+
+    .contest-challenge-panel {
+        width: 100%;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+}
