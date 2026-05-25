@@ -2,7 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getGeminiModel, generateChallengeWithLocalModel } from './aiUtil.js';
+import { getAIClient, generateContent } from './aiUtil.js'; 
 
 const isWindows = os.platform() === 'win32';
 const NULL_DEVICE = isWindows ? 'nul' : '/dev/null';
@@ -116,10 +116,9 @@ export async function judgeRepo(challenge, dir, history, modelName) {
   try {
     let text;
     try {
-      const model = getGeminiModel(modelName);
-      if (!model) throw new Error('GEMINI_API_KEY not set for fallback.');
-      const result = await model.generateContent(prompt);
-      text = result.response.text().trim();
+      if (!modelName) throw new Error('API_KEY for openrouter is not set for fallback.');
+
+      text = await generateContent(modelName, prompt)
     } catch (err) {
       console.warn(`Gemini API is not working. (${err.message}). Falling back to local model...`);
       text = await generateChallengeWithLocalModel(prompt);

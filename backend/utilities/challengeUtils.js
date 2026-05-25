@@ -1,8 +1,7 @@
-import { getGeminiModel, getPrompt, generateChallengeWithLocalModel } from "./aiUtil.js";
+import { getAIClient,getPrompt, generateContent, generateChallengeWithLocalModel } from "./aiUtil.js";
 import { parseGeminiJSON } from './gitUtils.js';
 import factory from "./SandboxFactory.js";
 import staticChallenges from '../challenges.js'
-
 // ── Module-level state ──────────────────────────────────
 let usedStaticIds = [];
 let previousTopics = [];
@@ -76,12 +75,11 @@ export const generateChallengeWithAI = async (difficulty, modelName) => {
   try {
     let text;
     try {
-      const model = getGeminiModel(modelName);
-      if (!model) throw new Error('GEMINI_API_KEY not set for fallback.');
+      if (!modelName) throw new Error('API_KEY for openrouter is not set for fallback.');
 
-      const result = await model.generateContent(prompt);
-      text = result.response.text().trim();
+      text = await generateContent(modelName, prompt)
     } catch (err) {
+      console.log(err)
       console.warn(`Gemini failed (${err.message}). Falling back to local models...`);
       text = await generateChallengeWithLocalModel(prompt);
     }

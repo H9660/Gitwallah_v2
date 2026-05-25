@@ -55,7 +55,7 @@ export function createContainer(challengeDir) {
         const containerId = execSync(
             `docker run -d ` +
             `--name ${name} ` +
-            `--memory=256m ` +
+            `--memory=8m ` +
             `--cpus=0.5 ` +
             `--pids-limit=50 ` +
             `--network=none ` +

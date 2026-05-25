@@ -3,7 +3,7 @@ import ChallengeResult from "../models/ChallengeResult.js";
 import factory from '../utilities/SandboxFactory.js';
 import { judgeRepo, configureGit } from "../utilities/gitUtils.js";
 import { getOrGenerateChallenge, cleanupSoloChallenge } from "../utilities/challengeUtils.js";
-
+import client from "../utilities/redisUtils.js";
 
 export const judgeSolution = async (req, res) => {
     // Access solo state from app.locals (set by server.js)
@@ -59,15 +59,21 @@ export const judgeSolution = async (req, res) => {
 
 export const generateChallange = async (req, res) => {
     // Cleanup previous sandbox via app.locals state
+
+    const { userId } = req.body;
+    // corrresponding to this userid we will see if we have a container present
+    // key could be userid::solo -> containerid
+    // and for duel it would be userid::duel -> containerid
     const { soloSandbox: prevSandbox } = req.app.locals.getSoloState();
     cleanupSoloChallenge(prevSandbox);
 
+
     const difficulty = req.query.difficulty || '';
-    const modelName = req.query.model || 'gemini-2.0-flash';
-    configureGit();
+    const modelName = req.query.model || 'gemini-2.0-flash'
 
     const result = await getOrGenerateChallenge(difficulty, modelName);
     if (!result) return res.status(404).json({ error: 'No challenges available' });
+
 
     // ── Factory creates the sandbox ──
     let soloSandbox = null;

@@ -1,18 +1,40 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { OpenRouter } from '@openrouter/sdk';
 import http from 'http';
 import dotenv from "dotenv";
 dotenv.config();
 
-let genAI = null;
+let apiKey = process.env.OPENROUTER_API_KEY;
+let aiClient = null;
 // here we are using the singleton pattern for the model 
-export const getGeminiModel = (modelName = 'gemini-2.0-flash') => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-  if (!genAI) {
-    genAI = new GoogleGenerativeAI(apiKey);
+export const getAIClient = () => {
+  if (aiClient) return aiClient;
+  if (!apiKey) {
+    return null;
+  } else {
+    aiClient = new OpenRouter({
+      apiKey: apiKey,
+    });
+    return aiClient;
   }
-  return genAI.getGenerativeModel({ model: modelName });
 }
+
+export const generateContent = async (modelName, prompt) => {
+  aiClient = getAIClient();
+  const response = await aiClient.chat.send({
+  chatRequest: {
+    model: modelName,
+    messages: [
+      {
+        role: "user",
+        content: prompt
+      }
+    ]
+  }
+});
+  return response.choices[0].message.content;
+}
+
 
 export const getPrompt = (level, guide) => {
   return `You are a Git challenge designer for an interactive Git training app. Generate a UNIQUE and CREATIVE git challenge.
