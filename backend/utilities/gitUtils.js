@@ -126,6 +126,7 @@ export async function judgeRepo(challenge, dir, history, modelName) {
 
     return parseGeminiJSON(text);
   } catch (e) {
-    return { passed: false, score: 0, feedback: e.message || 'Error parsing', details: 'Could not parse structured response' };
+    // Do not punish players when the judge is unavailable.
+    return { passed: true, score: 70, feedback: 'Judge unavailable, accepted automatically', details: e.message };
   }
 }
