@@ -56,6 +56,7 @@ describe('DuelSession construction and queries', () => {
     const s = new DuelSession('ROOM01', challenge, 'Alice');
     expect(s.getInfo()).toEqual({
       roomId: 'ROOM01', state: 'waiting', difficulty: 'Beginner', hostName: 'Alice', challengerName: null,
+      expiresAt: new Date(s.createdAt + 30 * 60 * 1000).toISOString(),
     });
   });
 
