@@ -70,6 +70,17 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504}
 
 
+NATIVE_CALL_NOTE = ("Your last reply tried to make a native function/tool call. Native function calling is NOT "
+                    "available here. Write your action as plain JSON text in the message body, exactly one object, "
+                    'for example {"action": "finish", "args": {...}}.')
+
+
+def is_native_call_filter(finish: str) -> bool:
+    """Gemini's finish_reason when it attempted a function call that the API rejected."""
+    f = (finish or "").lower()
+    return "malformed_function_call" in f or f.startswith("function_call_filter")
+
+
 def kind_for(role: str) -> str:
     return (os.environ.get(f"BRAIN_{role.upper()}") or os.environ.get("BRAIN") or "gemini").lower()
 
@@ -116,6 +127,7 @@ class Brain:
         max_out = LIMITS.max_output_tokens
         cap = max(max_out, LIMITS.max_output_tokens_cap)
         errors = 0
+        filtered = 0
         while True:
             kwargs["max_tokens"] = max_out
             try:
@@ -139,6 +151,12 @@ class Brain:
                 # Cut off (often by hidden thinking, leaving no text at all). A JSON agent cannot use
                 # half an answer, so ask the same question again with a bigger limit.
                 max_out = min(cap, max_out * 2)
+                continue
+            if not text.strip() and is_native_call_filter(finish) and filtered < 2:
+                # Gemini tried a *native* function call (no tools are declared, so the API drops it and
+                # returns no text). Ask again, saying plainly that actions are JSON text.
+                filtered += 1
+                kwargs["messages"] = list(messages) + [{"role": "user", "content": NATIVE_CALL_NOTE}]
                 continue
             return text
 

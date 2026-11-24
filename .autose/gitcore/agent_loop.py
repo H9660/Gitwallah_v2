@@ -12,7 +12,12 @@ import json
 import re
 from dataclasses import dataclass, field
 
-from .brain import Brain
+from .brain import NATIVE_CALL_NOTE, Brain, is_native_call_filter
+
+# Said once in every system prompt: the "tools" are a text protocol, not the API's function calling.
+TEXT_PROTOCOL = ("These tools are NOT native function calls and none are declared to the API. Never use "
+                 "function calling. Every reply is exactly one JSON object written as plain text: "
+                 '{"action": "<tool name or finish>", "args": {...}}.')
 from .config import PROMPTS_DIR
 from .tools import Toolbox, ToolError
 
@@ -82,6 +87,9 @@ def _reply_problem(brain: Brain, e: Exception) -> tuple[str, str]:
         return (f"reply cut off at the output limit (finish_reason=length, max_tokens={limit})",
                 "ERROR: your reply was cut off at the output limit. Reply again with ONE short JSON object "
                 "(keep every string brief, no code, no prose).")
+    if is_native_call_filter(finish):
+        return (f"model kept attempting native function calls instead of JSON text (finish_reason={finish})",
+                "ERROR: " + NATIVE_CALL_NOTE)
     if str(e) == "empty reply":
         return (f"empty reply (finish_reason={finish}, max_tokens={limit})",
                 "ERROR: your reply was empty. Reply now with one JSON object with 'action' and 'args'.")
@@ -93,7 +101,7 @@ def run_agent(brain: Brain, role: str, system: str, task: str, tools: Toolbox | 
     guard = load_prompt("guard.md")
     tool_doc = tools.describe() if tools else '- finish {...}: return your result'
     messages = [
-        {"role": "system", "content": f"{guard}\n\n{system}\n\n## Tools\n{tool_doc}"},
+        {"role": "system", "content": f"{guard}\n\n{system}\n\n## Tools\n{TEXT_PROTOCOL}\n\n{tool_doc}"},
         {"role": "user", "content": task},
     ]
     transcript: list = []

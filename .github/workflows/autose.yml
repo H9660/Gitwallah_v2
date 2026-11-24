@@ -39,6 +39,11 @@ env:
   BRAIN_REVIEW: ${{ vars.GITCORE_BRAIN_REVIEW || '' }}         # optional: other provider for the reviewer
   MODEL_BUILDER: ${{ vars.MODEL_BUILDER || 'gemini-2.5-flash' }}
   MODEL_REVIEWER: ${{ vars.MODEL_REVIEWER || 'gemini-2.5-pro' }}
+  # optional per-stage overrides; empty = MODEL_BUILDER (brain.model_for)
+  MODEL_SPEC: ${{ vars.MODEL_SPEC || '' }}
+  MODEL_DESIGN: ${{ vars.MODEL_DESIGN || '' }}
+  MODEL_IMPLEMENT: ${{ vars.MODEL_IMPLEMENT || '' }}
+  MODEL_TEST: ${{ vars.MODEL_TEST || '' }}
   GITCORE_PRICE_IN: ${{ vars.GITCORE_PRICE_IN || '1.50' }}     # USD per 1M input tokens (Gemini reports no cost)
   GITCORE_PRICE_OUT: ${{ vars.GITCORE_PRICE_OUT || '9.00' }}   # USD per 1M output tokens
   GITCORE_PRICE_IN_REVIEW: ${{ vars.GITCORE_PRICE_IN_REVIEW || '' }}    # optional reviewer-specific prices

@@ -254,6 +254,32 @@ def test_cut_off_reply_is_reasked_with_a_bigger_limit(monkeypatch):
     assert b.last_reply["finish_reason"] == "stop" and b.usage.calls == 2   # both calls are billed
 
 
+def test_native_function_call_attempt_is_reasked_as_json_text(monkeypatch):
+    from gitcore.brain import NATIVE_CALL_NOTE
+    monkeypatch.setenv("BRAIN", "gemini")
+    calls = []
+    b = Brain()
+    bad = (None, "function_call_filter: MALFORMED_FUNCTION_CALL")
+    b._clients["gemini"] = _fake_client([bad, ('{"action": "finish", "args": {}}', "stop")], calls)
+    msgs = [{"role": "user", "content": "x"}]
+    assert b.chat("design", msgs) == '{"action": "finish", "args": {}}'
+    assert len(calls) == 2
+    assert calls[1]["messages"][-1]["content"] == NATIVE_CALL_NOTE   # the retry says why
+    assert msgs == [{"role": "user", "content": "x"}]                # caller's list untouched
+
+
+def test_persistent_native_call_attempts_are_reported(monkeypatch):
+    from gitcore.agent_loop import run_agent
+    monkeypatch.setenv("BRAIN", "gemini")
+    calls = []
+    b = Brain()
+    b._clients["gemini"] = _fake_client([(None, "function_call_filter: MALFORMED_FUNCTION_CALL")] * 9, calls)
+    res = run_agent(b, "design", "sys", "task", None, 5)
+    assert res.status == "error" and "native function calls" in res.error
+    assert "NOT native function calls" in calls[0]["messages"][0]["content"]   # system prompt says so up front
+    assert len(calls) == 9                                                     # 3 replies x (1 + 2 re-asks)
+
+
 def test_cut_off_at_the_cap_reports_the_real_reason(monkeypatch):
     from gitcore.agent_loop import run_agent
     from gitcore.config import LIMITS
