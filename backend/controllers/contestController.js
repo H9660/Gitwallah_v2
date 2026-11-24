@@ -523,11 +523,18 @@ export const updateContest = async (req, res) => {
         if (!contest) return;
 
         const { title, description, difficulty, startTime, endTime, problems } = req.body;
+        const newStartTime = startTime !== undefined ? new Date(startTime) : contest.startTime;
+        const newEndTime = endTime !== undefined ? new Date(endTime) : contest.endTime;
+
+        if (newStartTime >= newEndTime) {
+            return res.status(400).json({ error: 'startTime must be before endTime' });
+        }
+
         if (title !== undefined) contest.title = title.trim();
         if (description !== undefined) contest.description = description.trim();
         if (difficulty !== undefined) contest.difficulty = difficulty;
-        if (startTime !== undefined) contest.startTime = new Date(startTime);
-        if (endTime !== undefined) contest.endTime = new Date(endTime);
+        if (startTime !== undefined) contest.startTime = newStartTime;
+        if (endTime !== undefined) contest.endTime = newEndTime;
 
         // Allow updating problems only if contest hasn't started
         if (problems !== undefined) {
