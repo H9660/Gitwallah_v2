@@ -196,6 +196,31 @@ describe('creator-only admin actions', () => {
     expect(contest.save).toHaveBeenCalledOnce();
   });
 
+  it('AC-1: rejects updateContest with HTTP 400 when startTime >= endTime', async () => {
+    const contest = contestDoc({
+      startTime: new Date(Date.now() + HOUR),
+      endTime: new Date(Date.now() + 2 * HOUR),
+    });
+    Contest.findById.mockResolvedValue(contest);
+    const res = mockRes();
+    await ctrl.updateContest({
+      params: { id: 'c1' },
+      userId: 'creator',
+      body: { startTime: iso(2 * HOUR), endTime: iso(HOUR) }
+    }, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('startTime must be before endTime');
+    expect(contest.save).not.toHaveBeenCalled();
+  });
+
+  it('AC-2: joinContest rejects with Contest has not started yet before startTime', async () => {
+    Contest.findById.mockResolvedValue(contestDoc({ startTime: new Date(Date.now() + HOUR), endTime: new Date(Date.now() + 2 * HOUR) }));
+    const res = mockRes();
+    await ctrl.joinContest({ params: { id: 'c1' }, userId: 'u1' }, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('Contest has not started yet');
+  });
+
   it('deleteContest deletes for the creator', async () => {
     Contest.findById.mockResolvedValue(contestDoc());
     const res = mockRes();
