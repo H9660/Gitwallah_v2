@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from gitcore import cli
-from gitcore import github as ghmod
+from Gitwallah_v2.A3.workflow.autose.gitcore import cli
+from Gitwallah_v2.A3.workflow.autose.gitcore import github as ghmod
 
 
 class FakeGH:

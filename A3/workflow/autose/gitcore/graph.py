@@ -12,7 +12,8 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from . import checks, render
+from . import render
+from . import checks
 from .agent_loop import load_prompt, run_agent, single_shot, untrusted_issue as _untrusted_issue
 from .brain import Brain, BudgetExceeded
 from .config import LIMITS, TESTS_DIR
