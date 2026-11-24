@@ -8,7 +8,7 @@ from pathlib import Path
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
 
 # Paths an agent may never read or write (ADR-005).
-FORBIDDEN_PREFIXES = (".git/", ".github/", ".autose/", "node_modules/", "backend/node_modules/", "frontend/node_modules/")
+FORBIDDEN_PREFIXES = (".git/", "gitcore-out/", ".github/", ".autose/", "node_modules/", "backend/node_modules/", "frontend/node_modules/")
 # Code the agents are allowed to change at all.
 SOURCE_ROOT = "backend/"
 TESTS_DIR = "backend/tests/"

@@ -165,3 +165,11 @@ def test_edits_keep_the_files_line_endings(repo):
     assert p.read_bytes() == b"line1\r\nLINE2\r\n"
     t.write_file("backend/crlf.js", "a\nb\n")
     assert p.read_bytes() == b"a\r\nb\r\n"
+
+
+def test_agents_cannot_read_run_output_dir(repo):
+    (repo / "gitcore-out").mkdir()
+    (repo / "gitcore-out" / "transcript_implement_1.jsonl").write_text("{}")
+    with pytest.raises(ToolError):
+        Toolbox(repo, "review").read_file("gitcore-out/transcript_implement_1.jsonl")
+    assert "gitcore-out" not in Toolbox(repo, "review").list_dir(".")

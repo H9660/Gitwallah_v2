@@ -30,7 +30,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OUT: ${{ github.workspace }}/../gitcore-out
+  # Inside the workspace (upload-artifact rejects ".." paths). Git-ignored and
+  # blocked for agent tools (config.FORBIDDEN_PREFIXES), so agents never see it.
+  OUT: ${{ github.workspace }}/gitcore-out
   PYTHONPATH: ${{ github.workspace }}/.autose
   PYTHONDONTWRITEBYTECODE: "1"
   BRAIN: ${{ vars.GITCORE_BRAIN || 'llm' }}
