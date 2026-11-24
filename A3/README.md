@@ -9,7 +9,7 @@ GitHub Actions workflow in which agents turn a GitHub issue into a tested pull r
 | **Test suite** | `backend/`: Vitest, 156 tests, about 5 s (`npm ci --ignore-scripts && npm test`) |
 | **Workflow** | `.github/workflows/autose.yml` in the fork; copy in [`workflow/`](workflow/) |
 | **Report** | [`report.pdf`](report.pdf) (source: [`report/report.md`](report/report.md)) |
-| **Demo** | `<FILL: demo.mp4 or link>` |
+| **Demo videos** | Two separate videos, for clarity: 1. [End-to-end workflow](https://drive.google.com/file/d/1oIhWCkD3-qWcHABXZVoU07dl9PN4E8me/view?usp=drive_link) (issue → reviewed PR). 2. [Seeded-PR reviewer](https://drive.google.com/file/d/1ZE_VxxRkZ2eBeBDrT9atXYnlHii646od/view?usp=drive_link) (`/autose review` on the seeded PRs). |
 
 ## Models
 

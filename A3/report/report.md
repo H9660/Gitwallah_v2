@@ -179,6 +179,9 @@ If I started again tomorrow, I would first change **how I chose the models (ADR-
 
 # Appendix
 
+- **Demo videos.** I recorded two separate videos so each one shows one thing clearly:
+  1. [End-to-end workflow](https://drive.google.com/file/d/1oIhWCkD3-qWcHABXZVoU07dl9PN4E8me/view?usp=drive_link): an issue going through all six stages to a reviewed PR.
+  2. [Seeded-PR reviewer](https://drive.google.com/file/d/1ZE_VxxRkZ2eBeBDrT9atXYnlHii646od/view?usp=drive_link): `/autose review` on the seeded PRs.
 - **A. Runs and artifacts.** Every run, PR and review comment is linked in `results/runs.md`. Example of a complete run: B1, run [45383631388](https://github.com/H9660/Gitwallah_v2/actions/runs/45383631388), [PR #4](https://github.com/H9660/Gitwallah_v2/pull/4) (PR body = rendered spec and design; review comment on the PR; `spec.md`, `design.md`, `test_report.md` in the run's `gitcore-build` artifact).
 - **B. Seeded-PR reviews.** sp1 [#10](https://github.com/H9660/Gitwallah_v2/pull/10), sp2 [#9](https://github.com/H9660/Gitwallah_v2/pull/9), sp3 [#8](https://github.com/H9660/Gitwallah_v2/pull/8), sp4 [#11](https://github.com/H9660/Gitwallah_v2/pull/11), sp5 [#12](https://github.com/H9660/Gitwallah_v2/pull/12) (two reviews: flash-lite and 3.8-flash). Planted defects and expected verdicts: `experiment/seeded_prs/labels.json`.
 - **C. Prompts:** `workflow/autose/prompts/`. **Experiment definitions:** `experiment/variants.md`. **Local verification before the first run:** `results/local_verification.md`.
