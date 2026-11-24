@@ -33,7 +33,7 @@ router.post('/:id/judge', requireAuth, judgeContestChallenge);
 
 // Authenticated — admin (creator-only, enforced in controller)
 router.put('/:id', requireAuth, updateContest);
-router.delete('/:id', requireAuth, deleteContest);
+router.delete('/:id', deleteContest);
 router.post('/:id/end', requireAuth, endContest);
 router.post('/:id/reset', requireAuth, resetLeaderboard);
 router.get('/:id/participants', requireAuth, getContestParticipants);
