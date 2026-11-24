@@ -97,9 +97,26 @@ describe('judgeRepo', () => {
 
   it('returns a failing verdict when the model reply is not JSON', async () => {
     ai.generateContent.mockResolvedValue('I think they passed!');
+    ai.generateChallengeWithLocalModel.mockRejectedValue(new Error('Local failure'));
     const r = await judgeRepo(challenge, dir, '', 'm');
     expect(r.passed).toBe(false);
     expect(r.score).toBe(0);
     expect(r.details).toBe('Could not parse structured response');
+  });
+
+  it('AC-1: falls back to local model judging when hosted LLM fails', async () => {
+    ai.generateContent.mockRejectedValue(new Error('HTTP 429'));
+    ai.generateChallengeWithLocalModel.mockResolvedValue('{"passed":true,"score":85,"feedback":"good job","details":"local model verdict"}');
+    const r = await judgeRepo(challenge, dir, 'git commit', 'some/model');
+    expect(r).toEqual({ passed: true, score: 85, feedback: 'good job', details: 'local model verdict' });
+    expect(ai.generateChallengeWithLocalModel).toHaveBeenCalled();
+  });
+
+  it('AC-2: returns safe failure verdict when both hosted LLM and local model fail', async () => {
+    ai.generateContent.mockRejectedValue(new Error('HTTP 429'));
+    ai.generateChallengeWithLocalModel.mockRejectedValue(new Error('Local model error'));
+    const r = await judgeRepo(challenge, dir, 'git commit', 'some/model');
+    expect(r.passed).toBe(false);
+    expect(r.score).toBe(0);
   });
 });
