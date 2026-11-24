@@ -145,7 +145,7 @@ class DuelSession {
    * @returns {{ ok: boolean, error?: string }}
    */
   accept() {
-    if (!this._canTransition(STATES.PLAYING)) {
+    if (this.state !== STATES.READY) {
       return { ok: false, error: `Cannot accept: room is in '${this.state}' state` };
     }
 
