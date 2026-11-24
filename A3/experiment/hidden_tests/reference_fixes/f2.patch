@@ -1,0 +1,46 @@
+diff --git a/backend/DuelSession.js b/backend/DuelSession.js
+index c74a166..8b282d5 100755
+--- a/backend/DuelSession.js
++++ b/backend/DuelSession.js
+@@ -33,6 +33,9 @@ const VALID_TRANSITIONS = Object.freeze({
+  *   pre-condition validation.
+  * - The session object is the single source of truth for duel state.
+  */
++// Rooms expire this long after creation (cleanup sweep in server.js uses the same value).
++const ROOM_TTL_MS = 30 * 60 * 1000;
++
+ class DuelSession {
+   /**
+    * @param {string} roomId
+@@ -87,6 +90,7 @@ class DuelSession {
+       difficulty: this.challenge.difficulty,
+       hostName: this.host.name,
+       challengerName: this.challenger.name,
++      expiresAt: new Date(this.createdAt + ROOM_TTL_MS).toISOString(),
+     };
+   }
+ 
+@@ -263,6 +267,10 @@ class DuelSession {
+     return crypto.randomBytes(3).toString('hex').toUpperCase();
+   }
+ 
++  static get ROOM_TTL_MS() {
++    return ROOM_TTL_MS;
++  }
++
+   static get STATES() {
+     return STATES;
+   }
+diff --git a/backend/server.js b/backend/server.js
+index 900f3e6..cce3690 100755
+--- a/backend/server.js
++++ b/backend/server.js
+@@ -461,7 +461,7 @@ wss.on('connection', (ws) => {
+ setInterval(() => {
+   const now = Date.now();
+   for (const [roomId, session] of sessions) {
+-    if (now - session.createdAt > 30 * 60 * 1000) {
++    if (now - session.createdAt > DuelSession.ROOM_TTL_MS) {
+       console.log(`  ⏰ Room ${roomId} expired`);
+       cleanupSession(roomId);
+     }

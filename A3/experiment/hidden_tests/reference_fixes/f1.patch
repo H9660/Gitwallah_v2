@@ -1,0 +1,21 @@
+diff --git a/backend/controllers/contestController.js b/backend/controllers/contestController.js
+index 2b532eb..ba5b637 100755
+--- a/backend/controllers/contestController.js
++++ b/backend/controllers/contestController.js
+@@ -491,8 +491,15 @@ export const getLeaderboard = async (req, res) => {
+ // ══════════════════════════════════════════════════════════
+ // ── GET AVAILABLE STATIC CHALLENGES ──────────────────────
+ // ══════════════════════════════════════════════════════════
++const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
++
+ export const getAvailableChallenges = async (req, res) => {
+-    const available = staticChallenges.map(c => ({
++    const difficulty = req.query?.difficulty;
++    if (difficulty !== undefined && !DIFFICULTIES.includes(difficulty)) {
++        return res.status(400).json({ error: `Unknown difficulty '${difficulty}'. Use one of: ${DIFFICULTIES.join(', ')}` });
++    }
++    const pool = difficulty ? staticChallenges.filter(c => c.difficulty === difficulty) : staticChallenges;
++    const available = pool.map(c => ({
+         id: c.id,
+         title: c.title,
+         difficulty: c.difficulty,

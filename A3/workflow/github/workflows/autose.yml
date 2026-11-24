@@ -1,0 +1,345 @@
+name: GitCore (issue -> reviewed PR)
+
+# Design: see ADR-001..010 in the submission repository.
+# Jobs are split at permission boundaries (ADR-002/005):
+#   gate (issues:w) -> build (read-only, runs models) -> release (contents:w, no model)
+#   -> ci (read) -> review (read; post step PR:w) -> [fix -> release_2 -> ci_2 -> review_2] -> finalize
+# The workflow never merges. A person decides.
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue to run on
+        required: true
+      variant:
+        description: Decision-experiment variant (empty = default design)
+        required: false
+        default: ""
+
+# Default for every job: nothing. Each job asks for what it needs.
+permissions: {}
+
+# One run per issue at a time; a second trigger waits (ADR-010).
+concurrency:
+  group: gitcore-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+env:
+  # Inside the workspace (upload-artifact rejects ".." paths). Git-ignored and
+  # blocked for agent tools (config.FORBIDDEN_PREFIXES), so agents never see it.
+  OUT: ${{ github.workspace }}/gitcore-out
+  PYTHONPATH: ${{ github.workspace }}/.autose
+  PYTHONDONTWRITEBYTECODE: "1"
+  BRAIN: ${{ vars.GITCORE_BRAIN || 'gemini' }}               # gemini | llm (OpenRouter) | slm
+  BRAIN_REVIEW: ${{ vars.GITCORE_BRAIN_REVIEW || '' }}         # optional: other provider for the reviewer
+  MODEL_BUILDER: ${{ vars.MODEL_BUILDER || 'gemini-2.5-flash' }}
+  MODEL_REVIEWER: ${{ vars.MODEL_REVIEWER || 'gemini-2.5-pro' }}
+  # optional per-stage overrides; empty = MODEL_BUILDER (brain.model_for)
+  MODEL_SPEC: ${{ vars.MODEL_SPEC || '' }}
+  MODEL_DESIGN: ${{ vars.MODEL_DESIGN || '' }}
+  MODEL_IMPLEMENT: ${{ vars.MODEL_IMPLEMENT || '' }}
+  MODEL_TEST: ${{ vars.MODEL_TEST || '' }}
+  GITCORE_PRICE_IN: ${{ vars.GITCORE_PRICE_IN || '1.50' }}     # USD per 1M input tokens (Gemini reports no cost)
+  GITCORE_PRICE_OUT: ${{ vars.GITCORE_PRICE_OUT || '9.00' }}   # USD per 1M output tokens
+  GITCORE_PRICE_IN_REVIEW: ${{ vars.GITCORE_PRICE_IN_REVIEW || '' }}    # optional reviewer-specific prices
+  GITCORE_PRICE_OUT_REVIEW: ${{ vars.GITCORE_PRICE_OUT_REVIEW || '' }}
+  GITCORE_MAX_USD: ${{ vars.GITCORE_MAX_USD || '0.50' }}
+  GITCORE_MAX_TOKENS: ${{ vars.GITCORE_MAX_TOKENS || '600000' }}
+  GITCORE_MAX_OUTPUT_TOKENS: ${{ vars.GITCORE_MAX_OUTPUT_TOKENS || '8192' }}          # per call, thinking included
+  GITCORE_MAX_OUTPUT_TOKENS_CAP: ${{ vars.GITCORE_MAX_OUTPUT_TOKENS_CAP || '16384' }} # re-ask limit for cut-off replies
+  GITCORE_REASONING_EFFORT: ${{ vars.GITCORE_REASONING_EFFORT || 'low' }}            # gemini: none|low|medium|high
+  GITCORE_VARIANT: ${{ inputs.variant || vars.GITCORE_VARIANT || '' }}
+  GITCORE_DRAFT_ON_FAILURE: ${{ vars.GITCORE_DRAFT_ON_FAILURE || 'true' }}   # failed run -> draft PR with the partial work
+
+jobs:
+  # ------------------------------------------------------------------ 0 gate
+  gate:
+    if: >-
+      (github.event_name == 'issues' && github.event.label.name == 'autose') ||
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/autose') &&
+       !endsWith(github.event.comment.user.login, '[bot]')) ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+      issue: ${{ steps.gate.outputs.issue }}
+      mode: ${{ steps.gate.outputs.mode }}
+      pr: ${{ steps.gate.outputs.pr }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false, sparse-checkout: .autose }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore gate --out "$OUT"
+      - uses: actions/upload-artifact@v4
+        with: { name: gitcore-gate, path: "${{ env.OUT }}", retention-days: 30 }
+
+  # ------------------------------------------------------------------ 1-4 build
+  build:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true' && needs.gate.outputs.mode == 'pipeline'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read            # no write token: model-written code runs here
+    outputs:
+      status: ${{ steps.build.outputs.status }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/gitcore-setup
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-gate, path: "${{ env.OUT }}" }
+      - id: build
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python -m gitcore build --repo . --out "$OUT" --issue-file "$OUT/issue.json"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-build, path: "${{ env.OUT }}", retention-days: 30 }
+
+  # ------------------------------------------------------------------ 5 release
+  release:
+    needs: [gate, build]
+    if: always() && needs.gate.outputs.proceed == 'true' && needs.gate.outputs.mode == 'pipeline' && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      released: ${{ steps.rel.outputs.released }}
+      pr: ${{ steps.rel.outputs.pr }}
+      sha: ${{ steps.rel.outputs.sha }}
+      draft: ${{ steps.rel.outputs.draft }}     # "true" when the run failed and the PR only shows partial work
+    steps:
+      - uses: actions/checkout@v4      # credentials kept: this job pushes, and runs no model
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-build, path: "${{ env.OUT }}" }
+      - id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore release --repo . --out "$OUT" --issue-file "$OUT/issue.json" --mode initial --base "${{ github.event.repository.default_branch }}"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-release, path: "${{ env.OUT }}", retention-days: 30 }
+
+  ci:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.release.outputs.sha }}
+
+  # ------------------------------------------------------------------ 6 review, round 1
+  review:
+    needs: [gate, release, ci]
+    # a draft PR from a failed run is not reviewed: it already failed GitCore's own checks
+    if: needs.ci.result == 'success' && needs.release.outputs.draft != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write       # used only by the post step, after the agent has finished
+    outputs:
+      verdict: ${{ steps.post.outputs.verdict }}
+      needs_fix: ${{ steps.post.outputs.needs_fix }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ needs.release.outputs.sha }}", persist-credentials: false }
+      - uses: ./.github/actions/gitcore-setup
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-gate, path: "${{ env.OUT }}" }
+      - if: env.GITCORE_VARIANT == 'reviewer_sees_rationale'
+        uses: actions/download-artifact@v4
+        with: { name: gitcore-build, path: "${{ env.OUT }}/rationale" }
+      - name: Fetch PR diff (token used here only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr diff ${{ needs.release.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
+      - name: Independent reviewer (no GitHub token in env)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 1 --pr ${{ needs.release.outputs.pr }} --rationale-dir "$OUT/rationale"
+      - id: post
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore post-review --out "$OUT" --pr ${{ needs.release.outputs.pr }} --round 1 --max-rounds 2
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-review-1, path: "${{ env.OUT }}", retention-days: 30 }
+
+  # ------------------------------------------------------------------ back-edge: fix (round 1 only)
+  fix:
+    needs: [release, review]
+    if: needs.review.outputs.needs_fix == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    outputs:
+      status: ${{ steps.fix.outputs.status }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ needs.release.outputs.sha }}", persist-credentials: false }
+      - uses: ./.github/actions/gitcore-setup
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-build, path: "${{ env.OUT }}" }
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-review-1, path: "${{ runner.temp }}/review1" }
+      - id: fix
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          cp "${{ runner.temp }}/review1/review_1.json" "$OUT/review_1.json"
+          cp "${{ runner.temp }}/review1/review_1.md" "$OUT/review_1.md"
+          python -m gitcore fix --repo . --out "$OUT" --review "$OUT/review_1.json"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-fix, path: "${{ env.OUT }}", retention-days: 30 }
+
+  release_2:
+    needs: [gate, release, fix]
+    if: always() && needs.fix.result != 'skipped' && needs.fix.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      released: ${{ steps.rel.outputs.released }}
+      pr: ${{ steps.rel.outputs.pr }}
+      sha: ${{ steps.rel.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "autose/issue-${{ needs.gate.outputs.issue }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-fix, path: "${{ env.OUT }}" }
+      - id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore release --repo . --out "$OUT" --issue-file "$OUT/issue.json" --mode fix --base "${{ github.event.repository.default_branch }}"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-release-2, path: "${{ env.OUT }}", retention-days: 30 }
+
+  ci_2:
+    needs: release_2
+    if: needs.release_2.outputs.released == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.release_2.outputs.sha }}
+
+  review_2:
+    needs: [gate, release_2, ci_2]
+    if: needs.ci_2.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ needs.release_2.outputs.sha }}", persist-credentials: false }
+      - uses: ./.github/actions/gitcore-setup
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-gate, path: "${{ env.OUT }}" }
+      - if: env.GITCORE_VARIANT == 'reviewer_sees_rationale'
+        uses: actions/download-artifact@v4
+        with: { name: gitcore-fix, path: "${{ env.OUT }}/rationale" }
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr diff ${{ needs.release_2.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
+      - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 2 --pr ${{ needs.release_2.outputs.pr }} --rationale-dir "$OUT/rationale"
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore post-review --out "$OUT" --pr ${{ needs.release_2.outputs.pr }} --round 2 --max-rounds 2
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-review-2, path: "${{ env.OUT }}", retention-days: 30 }
+
+  # ------------------------------------------------------------------ /autose review on a PR
+  review_on_demand:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true' && needs.gate.outputs.mode == 'review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "refs/pull/${{ needs.gate.outputs.pr }}/head", persist-credentials: false }
+      - uses: ./.github/actions/gitcore-setup
+      - uses: actions/download-artifact@v4
+        with: { name: gitcore-gate, path: "${{ env.OUT }}" }
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr diff ${{ needs.gate.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
+      - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 3 --pr ${{ needs.gate.outputs.pr }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore post-review --out "$OUT" --pr ${{ needs.gate.outputs.pr }} --round 3 --max-rounds 0
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gitcore-review-on-demand, path: "${{ env.OUT }}", retention-days: 30 }
+
+  # ------------------------------------------------------------------ summary
+  finalize:
+    needs: [gate, build, release, ci, review, fix, release_2, ci_2, review_2]
+    if: always() && needs.gate.outputs.proceed == 'true' && needs.gate.outputs.mode == 'pipeline'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false, sparse-checkout: .autose }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      # Download in chronological order so later state overwrites earlier state.
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-gate, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-build, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-release, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-review-1, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-fix, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-release-2, path: "${{ env.OUT }}" } }
+      - { uses: actions/download-artifact@v4, continue-on-error: true, with: { name: gitcore-review-2, path: "${{ env.OUT }}" } }
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m gitcore finalize --out "$OUT" --issue "${{ needs.gate.outputs.issue }}" --ci "${{ needs.ci_2.result != 'skipped' && needs.ci_2.result || needs.ci.result }}"
+      - uses: actions/upload-artifact@v4
+        with: { name: gitcore-final, path: "${{ env.OUT }}", retention-days: 30 }

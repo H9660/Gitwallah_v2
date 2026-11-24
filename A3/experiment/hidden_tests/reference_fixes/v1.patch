@@ -1,0 +1,19 @@
+diff --git a/backend/controllers/contestController.js b/backend/controllers/contestController.js
+index 2b532eb..f8790a1 100755
+--- a/backend/controllers/contestController.js
++++ b/backend/controllers/contestController.js
+@@ -523,6 +523,14 @@ export const updateContest = async (req, res) => {
+         if (!contest) return;
+ 
+         const { title, description, difficulty, startTime, endTime, problems } = req.body;
++        const newStart = startTime !== undefined ? new Date(startTime) : contest.startTime;
++        const newEnd = endTime !== undefined ? new Date(endTime) : contest.endTime;
++        if (Number.isNaN(newStart.getTime()) || Number.isNaN(newEnd.getTime())) {
++            return res.status(400).json({ error: 'startTime and endTime must be valid dates' });
++        }
++        if (newEnd <= newStart) {
++            return res.status(400).json({ error: 'End time must be after start time' });
++        }
+         if (title !== undefined) contest.title = title.trim();
+         if (description !== undefined) contest.description = description.trim();
+         if (difficulty !== undefined) contest.difficulty = difficulty;

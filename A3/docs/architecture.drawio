@@ -1,0 +1,226 @@
+<mxfile host="65bd71144e">
+    <diagram id="specbridge-agent" name="SpecBridge agent (LangGraph, orchestrator + subagents)">
+        <mxGraphModel dx="825" dy="322" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1720" pageHeight="1080" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="c2" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontSize=18;" value="&lt;b&gt;GitCore - LangGraph orchestrator and subagents&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="30" width="1000" x="30" y="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontColor=#555555;" value="&lt;b&gt;&lt;span style=&quot;scrollbar-color: rgba(168, 169, 170, 0.52) rgb(18, 19, 20); color: rgb(164, 164, 164);&quot;&gt;Issues/comments in PR out. &lt;/span&gt;&lt;span style=&quot;scrollbar-color: rgba(168, 169, 170, 0.52) rgb(18, 19, 20); font-family: &amp;quot;Mona Sans VF&amp;quot;, -apple-system, BlinkMacSystemFont, &amp;quot;Segoe UI&amp;quot;, &amp;quot;Noto Sans Backtick Fix&amp;quot;, &amp;quot;Noto Sans&amp;quot;, Helvetica, Arial, sans-serif, &amp;quot;Apple Color Emoji&amp;quot;, &amp;quot;Segoe UI Emoji&amp;quot;; font-size: 16px; background-color: rgb(13, 17, 23); color: rgb(240, 246, 252);&quot;&gt;The system runs every SDLC stage itself; a human only decides at the end.&lt;/span&gt;&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="40" width="1290" x="30" y="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="c4" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=12;strokeColor=#666666;" value="&lt;b&gt;Main graph&lt;/b&gt; - LangGraph StateGraph (checkpointed after every node)" vertex="1">
+                    <mxGeometry height="560" width="1100" x="230" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Trigger (Issue, comment, new labels)&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="70" width="160" x="30" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="c6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;fontColor=#ffffff;strokeColor=#1a1a1a;fontStyle=1;fontSize=10;" value="START" vertex="1">
+                    <mxGeometry height="40" width="60" x="240" y="185" as="geometry"/>
+                </mxCell>
+                <mxCell id="c7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;intake&lt;/b&gt;&lt;br&gt;Read the issue and format it into format that agent can understand&lt;div&gt;Generates &lt;b&gt;(spec.md)&lt;/b&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="110" width="160" x="320" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="c8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;&lt;u&gt;REQUIREMENTS PHASE 1&lt;/u&gt;&lt;/b&gt;&lt;br&gt;intent, acceptance criteria,&lt;br&gt;screens, questions, risks" vertex="1">
+                    <mxGeometry height="70" width="160" x="520" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="c9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;&lt;u&gt;clarify(REQUIREMENTS PHASE 2)&lt;/u&gt;&lt;/b&gt;&lt;br&gt;needs-clarification result:&lt;br&gt;Also flags malicious intent" vertex="1">
+                    <mxGeometry height="70" width="160" x="370" y="370" as="geometry"/>
+                </mxCell>
+                <mxCell id="c10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;orchestrator(DESIGN PHASE)&lt;/b&gt;&lt;br&gt;group criteria (max 5); search&lt;br&gt;per criterion; hand out code;&lt;br&gt;shared brief; split budget&lt;br&gt;(20% reserve); Send workers" vertex="1">
+                    <mxGeometry height="100" width="190" x="810" y="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="c11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=45;" value="" vertex="1">
+                    <mxGeometry height="70" width="160" x="1120" y="135" as="geometry"/>
+                </mxCell>
+                <mxCell id="c12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=70;" value="" vertex="1">
+                    <mxGeometry height="70" width="160" x="1110" y="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="c13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;criterion_worker x N&lt;/b&gt;&lt;br&gt;(subgraph, parallel)&lt;br&gt;search + write cases&lt;br&gt;for one criterion" vertex="1">
+                    <mxGeometry height="70" width="160" x="1100" y="155" as="geometry"/>
+                </mxCell>
+                <mxCell id="c14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;e2e_worker&lt;/b&gt; (subgraph)&lt;br&gt;flows that span criteria&lt;br&gt;(only if 2+ workers)" vertex="1">
+                    <mxGeometry height="60" width="160" x="1030" y="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="c15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;merge&lt;/b&gt;&lt;br&gt;code: combine, IDs, dedupe&lt;br&gt;evidence; AI editor: dedupe&lt;br&gt;cases, consistent names" vertex="1">
+                    <mxGeometry height="80" width="160" x="1400" y="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="c16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;reviewer&lt;/b&gt;&lt;br&gt;code checks + independent&lt;br&gt;AI review per criterion:&lt;br&gt;coverage, grounding, safety" vertex="1">
+                    <mxGeometry height="80" width="160" x="1310" y="420" as="geometry"/>
+                </mxCell>
+                <mxCell id="c17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;render&lt;/b&gt;&lt;br&gt;page grouped by criterion&lt;br&gt;+ ticket comment text" vertex="1">
+                    <mxGeometry height="70" width="160" x="690" y="510" as="geometry"/>
+                </mxCell>
+                <mxCell id="c18" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2.5;" value="&lt;u style=&quot;&quot;&gt;&lt;b&gt;RELEASE PHASE&lt;/b&gt;&lt;/u&gt;&lt;br&gt;upsert page in UAT, comment&lt;br&gt;on ticket; never overwrite&lt;br&gt;PM edits" vertex="1">
+                    <mxGeometry height="80" width="160" x="390" y="490" as="geometry"/>
+                </mxCell>
+                <mxCell id="c19" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;save_local&lt;/b&gt;&lt;br&gt;page + run record to file&lt;br&gt;(dry-run / eval mode)" vertex="1">
+                    <mxGeometry height="70" width="160" x="390" y="600" as="geometry"/>
+                </mxCell>
+                <mxCell id="c20" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;fontColor=#ffffff;strokeColor=#1a1a1a;fontStyle=1;fontSize=10;" value="END" vertex="1">
+                    <mxGeometry height="40" width="60" x="210" y="510" as="geometry"/>
+                </mxCell>
+                <mxCell id="c21" edge="1" parent="1" source="c5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c6" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c22" edge="1" parent="1" source="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c7" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c23" edge="1" parent="1" source="c7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c8" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c24" edge="1" parent="1" source="c8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;" target="c10" value="testable">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c25" edge="1" parent="1" source="c8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;" target="c9" value="not testable / unsafe">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c26" edge="1" parent="1" source="c10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;" target="c13" value="Send x N">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c27" edge="1" parent="1" source="c10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=0.75;exitY=1;entryX=0;entryY=0.5;" target="c14" value="Send">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c28" edge="1" parent="1" source="c13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c15" value="WorkerResult">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c29" edge="1" parent="1" source="c14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;exitX=1;exitY=0.5;entryX=0.5;entryY=1;" target="c15" value="WorkerResult">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c30" edge="1" parent="1" source="c15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c16" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c31" edge="1" parent="1" source="c16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=0;exitY=0.25;entryX=0.25;entryY=1;" target="c10" value="gaps and round &amp;lt; 2:&lt;br&gt;re-send weak criteria only">
+                    <mxGeometry relative="1" x="0.0261" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="900" y="440"/>
+                            <mxPoint x="900" y="385"/>
+                            <mxPoint x="770" y="385"/>
+                            <mxPoint x="770" y="255"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c32" edge="1" parent="1" source="c16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=0;exitY=0.75;entryX=1;entryY=0.5;" target="c17" value="ok or limit reached">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c33" edge="1" parent="1" source="c9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" target="c17" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c34" edge="1" parent="1" source="c17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;" target="c18" value="live">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c35" edge="1" parent="1" source="c17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" target="c19" value="dry-run / eval">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c36" edge="1" parent="1" source="c18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c20" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c37" edge="1" parent="1" source="c19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;exitX=0;exitY=0.5;entryX=0.5;entryY=1;" target="c20" value="B">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c38" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=12;strokeColor=#9673a6;" value="&lt;b&gt;Inside one criterion_worker&lt;/b&gt; - subgraph with its own WorkerState (sees only its brief + slice; returns only WorkerResult)" vertex="1">
+                    <mxGeometry height="210" width="1100" x="140" y="1461" as="geometry"/>
+                </mxCell>
+                <mxCell id="c39" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1a1a1a;fontColor=#ffffff;strokeColor=#1a1a1a;fontStyle=1;fontSize=10;" value="start" vertex="1">
+                    <mxGeometry height="36" width="50" x="180" y="1558" as="geometry"/>
+                </mxCell>
+                <mxCell id="c40" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;receive_slice&lt;/b&gt;&lt;br&gt;shared brief + its criterion&lt;br&gt;+ starting evidence + budget" vertex="1">
+                    <mxGeometry height="70" width="160" x="260" y="1541" as="geometry"/>
+                </mxCell>
+                <mxCell id="c41" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;agent&lt;/b&gt;&lt;br&gt;choose next read-only tool&lt;br&gt;or done (JSON action)" vertex="1">
+                    <mxGeometry height="70" width="160" x="480" y="1541" as="geometry"/>
+                </mxCell>
+                <mxCell id="c42" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;tools&lt;/b&gt; (knowledge base, read-only)&lt;br&gt;search_code, read_file,&lt;br&gt;grep, find_usages; own budget" vertex="1">
+                    <mxGeometry height="70" width="190" x="700" y="1508" as="geometry"/>
+                </mxCell>
+                <mxCell id="c43" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;write_cases&lt;/b&gt;&lt;br&gt;cases for its criterion only,&lt;br&gt;each citing evidence ids;&lt;br&gt;other findings -&amp;gt; notes" vertex="1">
+                    <mxGeometry height="70" width="190" x="700" y="1593" as="geometry"/>
+                </mxCell>
+                <mxCell id="c44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;return WorkerResult&lt;/b&gt;&lt;br&gt;status: complete | needs_more&lt;br&gt;| budget_hit; cases, evidence&lt;br&gt;pointers, questions, notes" vertex="1">
+                    <mxGeometry height="75" width="190" x="940" y="1563" as="geometry"/>
+                </mxCell>
+                <mxCell id="c45" edge="1" parent="1" source="c39" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c40" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c46" edge="1" parent="1" source="c40" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c41" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c47" edge="1" parent="1" source="c41" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=1;exitY=0.25;entryX=0;entryY=0.5;" target="c42" value="action = tool">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c48" edge="1" parent="1" source="c42" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;exitX=0.25;exitY=0;entryX=0.5;entryY=0;" target="c41" value="result">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="747" y="1493"/>
+                            <mxPoint x="560" y="1493"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c49" edge="1" parent="1" source="c41" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;dashed=1;strokeColor=#7F00FF;fontColor=#7F00FF;exitX=1;exitY=0.75;entryX=0;entryY=0.5;" target="c43" value="done / budget hit /&lt;br&gt;needs more">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c50" edge="1" parent="1" source="c43" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#333333;" target="c44" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c51" edge="1" parent="1" source="c13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;labelBackgroundColor=#ffffff;fontSize=11;strokeColor=#999999;fontColor=#777777;dashed=1;dashPattern=2 3;exitX=1;exitY=0.85;entryX=0.5;entryY=0;" target="c40" value="expanded below">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1110" y="219"/>
+                            <mxPoint x="1110" y="675"/>
+                            <mxPoint x="400" y="675"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c52" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontSize=10;fontColor=#555555;" value="Needs more than its budget? Returns &lt;b&gt;needs_more&lt;/b&gt; with a reason; the orchestrator grants extra once from the 20% reserve, or accepts a partial result shown as incomplete. Workers never talk to each other." vertex="1">
+                    <mxGeometry height="60" width="300" x="940" y="1493" as="geometry"/>
+                </mxCell>
+                <mxCell id="c53" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;fillColor=#ffffff;" value="&lt;b&gt;State&lt;/b&gt;&lt;br&gt;&lt;b&gt;SpecBridgeState&lt;/b&gt; (main): run_id, mode; ticket; understanding (intent, criteria, screens, questions, risks, testable); brief; work_items[] (criterion slice, seed evidence, budget); results[] (WorkerResult, list reducer); plan (merged cases); review (per criterion ok / gaps); round; budget (tokens, cost cap $0.25, reserve); page; status&lt;br&gt;&lt;br&gt;&lt;b&gt;WorkerState&lt;/b&gt; (private, per subagent): brief, slice, evidence[], messages[], budget, tool_calls, status" vertex="1">
+                    <mxGeometry height="250" width="340" x="1330" y="790" as="geometry"/>
+                </mxCell>
+                <mxCell id="c54" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;fillColor=#ffffff;" value="&lt;b&gt;Context per subagent&lt;/b&gt;&lt;br&gt;1. Shared brief (all workers, read-only, ~1k tokens)&lt;br&gt;2. Private slice: its criterion, matching ticket text, starting evidence, budget&lt;br&gt;3. Private memory: its tool conversation (never shared; kept in the run record)&lt;br&gt;Only WorkerResult leaves a worker.&lt;br&gt;&lt;br&gt;&lt;b&gt;Subagents per ticket&lt;/b&gt;&lt;br&gt;1 per criterion group (max 5) + e2e if 2+ workers; retries only for weak criteria (max 2 rounds). Parallel on cloud LLM; one at a time on local SLM." vertex="1">
+                    <mxGeometry height="220" width="340" x="1330" y="1052" as="geometry"/>
+                </mxCell>
+                <mxCell id="c55" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;" value="&lt;b&gt;Legend&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="25" width="340" x="1340" y="1310" as="geometry"/>
+                </mxCell>
+                <mxCell id="c56" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="code only (no AI)" vertex="1">
+                    <mxGeometry height="26" width="160" x="1340" y="1351" as="geometry"/>
+                </mxCell>
+                <mxCell id="c57" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="calls the brain (AI)" vertex="1">
+                    <mxGeometry height="26" width="160" x="1510" y="1351" as="geometry"/>
+                </mxCell>
+                <mxCell id="c58" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="subagent (subgraph)" vertex="1">
+                    <mxGeometry height="26" width="160" x="1340" y="1385" as="geometry"/>
+                </mxCell>
+                <mxCell id="c59" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" value="read-only tool runner" vertex="1">
+                    <mxGeometry height="26" width="160" x="1510" y="1385" as="geometry"/>
+                </mxCell>
+                <mxCell id="c60" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=12;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2.5;" value="writes to Atlassian" vertex="1">
+                    <mxGeometry height="26" width="160" x="1290" y="1469" as="geometry"/>
+                </mxCell>
+                <mxCell id="c61" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;" value="solid arrow = normal edge&lt;br&gt;&lt;font color=&#39;#7F00FF&#39;&gt;dashed purple = conditional edge / Send&lt;/font&gt;&lt;br&gt;&lt;font color=&#39;#777777&#39;&gt;dotted grey = &#39;expanded below&#39;&lt;/font&gt;&lt;br&gt;Limits: $0.25 per ticket, 2 review rounds, ~12 tool calls per worker round; hitting one gives status &#39;incomplete&#39;." vertex="1">
+                    <mxGeometry height="100" width="330" x="1290" y="1503" as="geometry"/>
+                </mxCell>
+                <mxCell id="c62" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Brain adapter&lt;/b&gt; (specbridge/brain.py)&lt;br&gt;BRAIN=llm: OpenRouter, Gemini 3.8 Flash&lt;br&gt;BRAIN=slm: local Ollama&lt;br&gt;Prompts: prompts/*.md (versioned)&lt;br&gt;&lt;i&gt;used by: understand, worker agent, write_cases, e2e, merge, reviewer&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="120" width="280" x="150" y="1711" as="geometry"/>
+                </mxCell>
+                <mxCell id="c63" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Knowledge base / code source&lt;/b&gt; (CODE_SOURCE)&lt;br&gt;library: SQLite + nomic-embed-text&lt;br&gt;github: live, at the frozen commit&lt;br&gt;tools: search_code, read_file, grep, find_usages&lt;br&gt;&lt;i&gt;used by: orchestrator (search), worker tools&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="120" width="290" x="450" y="1711" as="geometry"/>
+                </mxCell>
+                <mxCell id="c64" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Jira&lt;/b&gt; (team site, project SPEC)&lt;br&gt;read the ticket; add/update one comment&lt;br&gt;&lt;i&gt;used by: intake (read), publish (write)&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="120" width="240" x="760" y="1711" as="geometry"/>
+                </mxCell>
+                <mxCell id="c65" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Confluence&lt;/b&gt; (space UAT)&lt;br&gt;create / update the UAT page,&lt;br&gt;label awaiting-pm-review&lt;br&gt;&lt;i&gt;used by: publish&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="120" width="230" x="1020" y="1711" as="geometry"/>
+                </mxCell>
+                <mxCell id="c66" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Checkpointer + run records&lt;/b&gt;&lt;br&gt;SqliteSaver: state after every node,&lt;br&gt;each worker separately&lt;br&gt;data/runs/: tokens, cost, time,&lt;br&gt;evidence; feeds Step 9 scoring" vertex="1">
+                    <mxGeometry height="120" width="340" x="1270" y="1711" as="geometry"/>
+                </mxCell>
+                <mxCell id="XqwBTed2sItbB9OIS7TZ-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;MERGE HAPPENS MANUALLY&amp;nbsp;&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="60" width="120" x="190" y="440" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

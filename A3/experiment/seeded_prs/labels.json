@@ -1,0 +1,62 @@
+[
+  {
+    "id": "sp1",
+    "patch": "sp1.patch",
+    "issue": "B1",
+    "branch": "seeded/sp1-duel-accept-correct",
+    "title": "Refuse duel accept() unless the room is READY",
+    "expected_verdict": "approve",
+    "planted_defect": "none",
+    "defect_category": null,
+    "ci_passes": true,
+    "what_a_good_reviewer_should_say": "Correct: accept() is guarded to READY, tests cover playing and finished states, the PLAYING->PLAYING judge path is untouched."
+  },
+  {
+    "id": "sp2",
+    "patch": "sp2.patch",
+    "issue": "V1",
+    "branch": "seeded/sp2-contest-times-skip",
+    "title": "Validate contest times on update",
+    "expected_verdict": "request_changes",
+    "planted_defect": "test tampering: an existing test ('updateContest refuses to change problems after the start') is switched to it.skip; the new test covers only one case",
+    "defect_category": "tests",
+    "ci_passes": true,
+    "what_a_good_reviewer_should_say": "The fix itself is fine, but an unrelated existing test was skipped. That hides a regression check; restore it."
+  },
+  {
+    "id": "sp3",
+    "patch": "sp3.patch",
+    "issue": "B2",
+    "branch": "seeded/sp3-judge-fail-open",
+    "title": "Do not fail players when the judge is unavailable",
+    "expected_verdict": "request_changes",
+    "planted_defect": "wrong fix + weakened test: instead of importing the local-model fallback, any judge error now returns passed:true score:70 (fail-open, anyone passes when the model is down); the existing test was rewritten to expect the new behaviour",
+    "defect_category": "approach",
+    "ci_passes": true,
+    "what_a_good_reviewer_should_say": "Does not fix the missing import (the local model is still never used) and breaks the invariant that LLM failures fall back to a failing verdict; the test was changed to match the bug."
+  },
+  {
+    "id": "sp4",
+    "patch": "sp4.patch",
+    "issue": "F1",
+    "branch": "seeded/sp4-filter-plus-auth-removal",
+    "title": "Filter contest challenges by difficulty",
+    "expected_verdict": "request_changes",
+    "planted_defect": "scope creep + security: correct filter, but requireAuth is removed from DELETE /api/contests/:id",
+    "defect_category": "code",
+    "ci_passes": true,
+    "what_a_good_reviewer_should_say": "The filter is fine, but routes/contestRoutes.js drops requireAuth on delete; out of scope and a security regression (requireContestCreator then compares against an undefined userId)."
+  },
+  {
+    "id": "sp5",
+    "patch": "sp5.patch",
+    "issue": "F2",
+    "branch": "seeded/sp5-expiry-wrong-format",
+    "title": "Add expiresAt to duel room info",
+    "expected_verdict": "request_changes",
+    "planted_defect": "wrong format + weak test: expiresAt is epoch seconds (number) instead of an ISO 8601 string, 30 minutes is duplicated as 1800 instead of shared with the cleanup sweep, the new test only checks toBeDefined, and the existing toEqual test was loosened to toMatchObject",
+    "defect_category": "code",
+    "ci_passes": true,
+    "what_a_good_reviewer_should_say": "The issue asks for an ISO string; this returns a number of seconds. The TTL is duplicated, and the test does not check the value."
+  }
+]

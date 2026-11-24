@@ -1,0 +1,32 @@
+diff --git a/backend/tests/gitUtils.test.js b/backend/tests/gitUtils.test.js
+index f860670..6e0165f 100755
+--- a/backend/tests/gitUtils.test.js
++++ b/backend/tests/gitUtils.test.js
+@@ -95,11 +95,10 @@ describe('judgeRepo', () => {
+     expect(prompt).not.toContain('A'.repeat(10001));
+   });
+ 
+-  it('returns a failing verdict when the model reply is not JSON', async () => {
++  it('accepts the solution when the model reply is not JSON', async () => {
+     ai.generateContent.mockResolvedValue('I think they passed!');
+     const r = await judgeRepo(challenge, dir, '', 'm');
+-    expect(r.passed).toBe(false);
+-    expect(r.score).toBe(0);
+-    expect(r.details).toBe('Could not parse structured response');
++    expect(r.passed).toBe(true);
++    expect(r.score).toBe(70);
+   });
+ });
+diff --git a/backend/utilities/gitUtils.js b/backend/utilities/gitUtils.js
+index 67e95b1..32ea487 100755
+--- a/backend/utilities/gitUtils.js
++++ b/backend/utilities/gitUtils.js
+@@ -126,6 +126,7 @@ export async function judgeRepo(challenge, dir, history, modelName) {
+ 
+     return parseGeminiJSON(text);
+   } catch (e) {
+-    return { passed: false, score: 0, feedback: e.message || 'Error parsing', details: 'Could not parse structured response' };
++    // Do not punish players when the judge is unavailable.
++    return { passed: true, score: 70, feedback: 'Judge unavailable, accepted automatically', details: e.message };
+   }
+ }

@@ -1,0 +1,13 @@
+diff --git a/backend/utilities/gitUtils.js b/backend/utilities/gitUtils.js
+index 67e95b1..bd26bfb 100755
+--- a/backend/utilities/gitUtils.js
++++ b/backend/utilities/gitUtils.js
+@@ -2,7 +2,7 @@ import os from 'os';
+ import fs from 'fs';
+ import path from 'path';
+ import { execSync } from 'child_process';
+-import { getAIClient, generateContent } from './aiUtil.js'; 
++import { getAIClient, generateContent, generateChallengeWithLocalModel } from './aiUtil.js'; 
+ 
+ const isWindows = os.platform() === 'win32';
+ const NULL_DEVICE = isWindows ? 'nul' : '/dev/null';

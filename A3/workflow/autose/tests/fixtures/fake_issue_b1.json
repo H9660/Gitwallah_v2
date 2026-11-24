@@ -1,0 +1,182 @@
+{
+ "spec": [
+  {
+   "type": "bug",
+   "intent": "Accepting a duel that is already running must be refused instead of creating new sandboxes.",
+   "source_quotes": [
+    "If the host clicks Accept again (double click or page refresh) while the duel is already running, both terminals reset and the old containers keep running."
+   ],
+   "requirements": [
+    {
+     "id": "FR-001",
+     "statement": "The system shall reject accept() when the duel is not in the READY state.",
+     "prov": "S",
+     "basis": "\"while the duel is already running\" S1"
+    }
+   ],
+   "acceptance_criteria": [
+    {
+     "id": "AC-1",
+     "req": "FR-001",
+     "given": "a duel session in state playing",
+     "when": "accept() is called again",
+     "then": "it returns ok false and the state stays playing",
+     "expected": "{ ok: false, error: \"Cannot accept: room is in 'playing' state\" }",
+     "verify_by": "DuelSession.accept"
+    },
+    {
+     "id": "AC-2",
+     "req": "FR-001",
+     "given": "a duel session in state playing with two sandboxes",
+     "when": "accept() is called again",
+     "then": "no new sandbox is created and both players keep their sandbox objects",
+     "expected": "factory.createDuelSandbox called exactly 2 times in total",
+     "verify_by": "DuelSession.accept"
+    }
+   ],
+   "assumptions": [],
+   "questions": [],
+   "out_of_scope": [
+    "HTTP route changes in server.js"
+   ],
+   "testable": true,
+   "safety_flag": false,
+   "safety_reason": ""
+  }
+ ],
+ "design": [
+  {
+   "thought": "find accept",
+   "action": "grep",
+   "args": {
+    "pattern": "accept\\(",
+    "path": "backend"
+   }
+  },
+  {
+   "thought": "read it",
+   "action": "read_file",
+   "args": {
+    "path": "backend/DuelSession.js",
+    "start": 140,
+    "end": 170
+   }
+  },
+  {
+   "thought": "done",
+   "action": "finish",
+   "args": {
+    "approach": "Guard DuelSession.accept() so it only runs from READY. The generic transition table allows PLAYING -> PLAYING for failed judge attempts, so accept must check the state explicitly instead of relying on _canTransition.",
+    "files": [
+     {
+      "path": "backend/DuelSession.js",
+      "new": false,
+      "why": "accept() guard"
+     },
+     {
+      "path": "backend/tests/issue_b1.test.js",
+      "new": true,
+      "why": "AC tests"
+     }
+    ],
+    "functions": [
+     {
+      "name": "DuelSession.accept",
+      "file": "backend/DuelSession.js",
+      "new": false,
+      "change": "return ok:false unless state is READY"
+     }
+    ],
+    "ac_map": [
+     {
+      "ac": "AC-1",
+      "changes": [
+       "DuelSession.accept guard"
+      ],
+      "test_file": "backend/tests/issue_b1.test.js"
+     },
+     {
+      "ac": "AC-2",
+      "changes": [
+       "DuelSession.accept guard"
+      ],
+      "test_file": "backend/tests/issue_b1.test.js"
+     }
+    ],
+    "risks": [
+     "submitJudgement relies on PLAYING -> PLAYING; do not change VALID_TRANSITIONS"
+    ]
+   }
+  }
+ ],
+ "implement": [
+  {
+   "thought": "read",
+   "action": "read_file",
+   "args": {
+    "path": "backend/DuelSession.js",
+    "start": 145,
+    "end": 152
+   }
+  },
+  {
+   "thought": "guard",
+   "action": "replace_in_file",
+   "args": {
+    "path": "backend/DuelSession.js",
+    "old": "  accept() {\n    if (!this._canTransition(STATES.PLAYING)) {",
+    "new": "  accept() {\n    // Only READY -> PLAYING. PLAYING -> PLAYING is allowed in the table for\n    // failed judge attempts, so it must not let accept() run twice.\n    if (this.state !== STATES.READY || !this._canTransition(STATES.PLAYING)) {"
+   }
+  },
+  {
+   "thought": "build",
+   "action": "run_build",
+   "args": {}
+  },
+  {
+   "thought": "done",
+   "action": "finish",
+   "args": {
+    "summary": "accept() now refuses unless READY",
+    "files_changed": [
+     "backend/DuelSession.js"
+    ]
+   }
+  }
+ ],
+ "test": [
+  {
+   "thought": "write tests",
+   "action": "write_file",
+   "args": {
+    "path": "backend/tests/issue_b1.test.js",
+    "content": "import { describe, it, expect, vi, beforeEach } from 'vitest';\n\nvi.mock('../utilities/SandboxFactory.js', () => ({\n  default: { createDuelSandbox: vi.fn(), destroySandbox: vi.fn() },\n}));\n\nconst { default: factory } = await import('../utilities/SandboxFactory.js');\nconst { default: DuelSession } = await import('../DuelSession.js');\n\nconst challenge = { id: 'c', title: 't', difficulty: 'Beginner', description: 'd', hints: [] };\n\nfunction playing() {\n  const s = new DuelSession('ROOM01', challenge, 'Alice');\n  s.challengerJoin({}, 'Bob');\n  s.accept();\n  return s;\n}\n\nbeforeEach(() => {\n  vi.clearAllMocks();\n  factory.createDuelSandbox.mockImplementation(() => ({ ptyProcess: { kill: vi.fn() }, challengeDir: '/tmp/x' }));\n});\n\ndescribe('issue B1: accept() while playing', () => {\n  it(\"AC-1: returns ok false and keeps the state playing\", () => {\n    const s = playing();\n    expect(s.accept()).toEqual({ ok: false, error: \"Cannot accept: room is in 'playing' state\" });\n    expect(s.state).toBe('playing');\n  });\n\n  it('AC-2: creates no new sandboxes and keeps the players sandboxes', () => {\n    const s = playing();\n    const host = s.host.sandbox;\n    const ch = s.challenger.sandbox;\n    s.accept();\n    expect(factory.createDuelSandbox).toHaveBeenCalledTimes(2);\n    expect(s.host.sandbox).toBe(host);\n    expect(s.challenger.sandbox).toBe(ch);\n  });\n});\n"
+   }
+  },
+  {
+   "thought": "run mine",
+   "action": "run_tests",
+   "args": {
+    "files": [
+     "backend/tests/issue_b1.test.js"
+    ]
+   }
+  },
+  {
+   "thought": "done",
+   "action": "finish",
+   "args": {
+    "summary": "2 tests",
+    "tests": [
+     {
+      "ac": "AC-1"
+     },
+     {
+      "ac": "AC-2"
+     }
+    ],
+    "suspected_code_bugs": []
+   }
+  }
+ ]
+}
