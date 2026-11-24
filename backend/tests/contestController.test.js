@@ -92,7 +92,7 @@ describe('createContest', () => {
 });
 
 describe('getAvailableChallenges', () => {
-  it('lists every static challenge with a short description', async () => {
+  it('AC-2: lists every static challenge with a short description when no difficulty query param', async () => {
     const res = mockRes();
     await ctrl.getAvailableChallenges({ query: {} }, res);
     expect(res.body.challenges).toHaveLength(staticChallenges.length);
@@ -100,6 +100,23 @@ describe('getAvailableChallenges', () => {
       expect(Object.keys(c).sort()).toEqual(['description', 'difficulty', 'id', 'title']);
       expect(c.description.length).toBeLessThanOrEqual(121);
     }
+  });
+
+  it('AC-1: filters static challenges by difficulty when a valid difficulty query param is provided', async () => {
+    const res = mockRes();
+    await ctrl.getAvailableChallenges({ query: { difficulty: 'Beginner' } }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.challenges.length).toBeGreaterThan(0);
+    for (const c of res.body.challenges) {
+      expect(c.difficulty).toBe('Beginner');
+    }
+  });
+
+  it('AC-3: returns 400 error when invalid difficulty query param is provided', async () => {
+    const res = mockRes();
+    await ctrl.getAvailableChallenges({ query: { difficulty: 'Expert' } }, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ error: 'Invalid difficulty level' });
   });
 });
 

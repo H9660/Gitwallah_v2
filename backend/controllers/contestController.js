@@ -492,7 +492,13 @@ export const getLeaderboard = async (req, res) => {
 // ── GET AVAILABLE STATIC CHALLENGES ──────────────────────
 // ══════════════════════════════════════════════════════════
 export const getAvailableChallenges = async (req, res) => {
-    const available = staticChallenges.map(c => ({
+    const allowedDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
+    const difficulty = req.query?.difficulty;
+    if (difficulty !== undefined && !allowedDifficulties.includes(difficulty)) {
+        return res.status(400).json({ error: 'Invalid difficulty level' });
+    }
+    const filtered = difficulty ? staticChallenges.filter(c => c.difficulty === difficulty) : staticChallenges;
+    const available = filtered.map(c => ({
         id: c.id,
         title: c.title,
         difficulty: c.difficulty,
