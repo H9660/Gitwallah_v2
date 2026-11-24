@@ -71,11 +71,33 @@ def test_report_md(state: dict) -> str:
     return "\n".join(out) + "\n"
 
 
-def pr_md(state: dict, issue: dict, run_url: str = "") -> str:
+def stopped_stage(state: dict) -> str:
+    """The first stage whose check did not pass (for a run that did not reach 'ready')."""
+    for stage, key in (("spec", "spec_check"), ("design", "design_check"), ("implement", "build_check"), ("test", "test_check")):
+        if not (state.get(key) or {}).get("ok"):
+            return stage
+    return "release"
+
+
+def pr_md(state: dict, issue: dict, run_url: str = "", stopped: bool = False, has_code: bool = True) -> str:
     spec = state.get("spec", {})
     design = state.get("design", {})
     tc = (state.get("test_check") or {}).get("details", {})
-    out = [f"Automated change for #{issue.get('number')} by GitCore. **A human decides whether to merge.**", "",
+    out = []
+    if stopped:
+        out += [f"> **Draft: GitCore did not finish.** It stopped at stage **{stopped_stage(state)}** "
+                f"(status `{state.get('status')}`): {state.get('stop_reason', '')}",
+                "> This PR shows the partial work for inspection. It did not pass GitCore's checks, was not reviewed, "
+                "and is not proposed for merge.", ""]
+        if not has_code:
+            out += ["**No code was written:** the run stopped before implementation. The spec and design below are what it produced.", ""]
+        if design.get("files"):
+            out += ["### Planned changes (design)", ""]
+            out += [f"- `{f.get('path')}`{' (new)' if f.get('new') else ''}: {f.get('why', '')}" for f in design["files"]]
+            out.append("")
+        if state.get("last_failure"):
+            out += ["### Last check failure", "", "```", str(state["last_failure"])[-1500:], "```", ""]
+    out += [f"Automated change for #{issue.get('number')} by GitCore. **A human decides whether to merge.**", "",
            f"**Intent (from spec):** {spec.get('intent', '')}", "", f"**Approach (from design):** {design.get('approach', '')}", "",
            "### Acceptance criteria", ""]
     for a in spec.get("acceptance_criteria", []):

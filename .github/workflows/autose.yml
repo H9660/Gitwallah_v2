@@ -54,6 +54,7 @@ env:
   GITCORE_MAX_OUTPUT_TOKENS_CAP: ${{ vars.GITCORE_MAX_OUTPUT_TOKENS_CAP || '16384' }} # re-ask limit for cut-off replies
   GITCORE_REASONING_EFFORT: ${{ vars.GITCORE_REASONING_EFFORT || 'low' }}            # gemini: none|low|medium|high
   GITCORE_VARIANT: ${{ inputs.variant || vars.GITCORE_VARIANT || '' }}
+  GITCORE_DRAFT_ON_FAILURE: ${{ vars.GITCORE_DRAFT_ON_FAILURE || 'true' }}   # failed run -> draft PR with the partial work
 
 jobs:
   # ------------------------------------------------------------------ 0 gate
@@ -125,6 +126,7 @@ jobs:
       released: ${{ steps.rel.outputs.released }}
       pr: ${{ steps.rel.outputs.pr }}
       sha: ${{ steps.rel.outputs.sha }}
+      draft: ${{ steps.rel.outputs.draft }}     # "true" when the run failed and the PR only shows partial work
     steps:
       - uses: actions/checkout@v4      # credentials kept: this job pushes, and runs no model
       - uses: actions/setup-python@v5
@@ -151,7 +153,8 @@ jobs:
   # ------------------------------------------------------------------ 6 review, round 1
   review:
     needs: [gate, release, ci]
-    if: needs.ci.result == 'success'
+    # a draft PR from a failed run is not reviewed: it already failed GitCore's own checks
+    if: needs.ci.result == 'success' && needs.release.outputs.draft != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

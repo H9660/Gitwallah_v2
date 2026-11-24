@@ -99,6 +99,72 @@ def test_release_reports_instead_of_pushing_when_not_ready(env, monkeypatch):
     assert "released=false" in (env / "gh_output").read_text()
 
 
+def _git_repo(tmp):
+    """A clone with one commit and a bare 'origin', so release can really commit and push."""
+    import subprocess
+    run = lambda *a, cwd: subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True, text=True)
+    origin, work = tmp / "origin.git", tmp / "work"
+    run("init", "-q", "--bare", str(origin), cwd=tmp)
+    run("init", "-q", "-b", "main", str(work), cwd=tmp)
+    (work / "backend").mkdir()
+    (work / "backend" / "a.js").write_text("export const a = 1;\n")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "add", ".", cwd=work)
+    run("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init", cwd=work)
+    run("remote", "add", "origin", str(origin), cwd=work)
+    run("push", "-q", "origin", "main", cwd=work)
+    return work, origin, run
+
+
+def _release(env, monkeypatch, state, patch_text=""):
+    fake = FakeGH()
+    monkeypatch.setattr(ghmod, "gh", fake)
+    work, origin, run = _git_repo(env)
+    outd = env / "out"
+    outd.mkdir()
+    (outd / "state.json").write_text(json.dumps({"issue": ISSUE, **state}))
+    (outd / "issue.json").write_text(json.dumps(ISSUE))
+    if patch_text:
+        (outd / "diff.patch").write_text(patch_text)
+    cli.main(["release", "--repo", str(work), "--out", str(outd), "--issue-file", str(outd / "issue.json"), "--mode", "initial"])
+    outputs = dict(l.split("=", 1) for l in (env / "gh_output").read_text().splitlines())
+    return fake, outd, outputs, origin, run
+
+
+def test_failed_before_code_opens_a_draft_pr_with_an_empty_commit(env, monkeypatch):
+    state = {"status": "failed", "stop_reason": "design agent: unparsable replies",
+             "spec": {"intent": "show expiry", "acceptance_criteria": [{"id": "AC-1", "given": "g", "when": "w", "then": "t"}]},
+             "spec_check": {"ok": True}}
+    fake, outd, out, origin, run = _release(env, monkeypatch, state)
+    assert out["released"] == "true" and out["draft"] == "true" and out["pr"] == "7"
+    create = fake.did("pr", "create")[0]
+    assert "--draft" in create and "[draft, stopped at design]" in create[create.index("--title") + 1]
+    body = (outd / "pr.md").read_text()
+    assert "did not finish" in body and "No code was written" in body and "AC-1" in body
+    files = run("show", "--name-only", "--format=", "autose/issue-3", cwd=origin).stdout.strip()
+    assert files == ""                                               # empty commit: nothing changed
+    assert "draft PR #7" in (outd / "stop_comment.md").read_text()
+    assert any("autose:failed" in c for c in fake.did("pr", "edit"))
+
+
+def test_failed_during_tests_puts_the_partial_code_in_the_draft(env, monkeypatch):
+    patch = ("diff --git a/backend/a.js b/backend/a.js\n--- a/backend/a.js\n+++ b/backend/a.js\n"
+             "@@ -1 +1 @@\n-export const a = 1;\n+export const a = 2;\n")
+    state = {"status": "failed", "stop_reason": "test: attempts used up", "last_failure": "AC-1 not covered",
+             "spec_check": {"ok": True}, "design_check": {"ok": True}, "build_check": {"ok": True},
+             "design": {"files": [{"path": "backend/a.js", "why": "bump"}]}}
+    fake, outd, out, origin, run = _release(env, monkeypatch, state, patch)
+    assert out["draft"] == "true"
+    assert run("show", "--name-only", "--format=", "autose/issue-3", cwd=origin).stdout.strip() == "backend/a.js"
+    body = (outd / "pr.md").read_text()
+    assert "stopped at stage **test**" in body and "AC-1 not covered" in body and "No code was written" not in body
+
+
+def test_draft_on_failure_can_be_switched_off(env, monkeypatch):
+    monkeypatch.setenv("GITCORE_DRAFT_ON_FAILURE", "false")
+    fake, outd, out, origin, run = _release(env, monkeypatch, {"status": "failed", "stop_reason": "x"})
+    assert out["released"] == "false" and not fake.did("pr", "create")
+
+
 def test_post_review_sets_needs_fix_only_before_last_round(env, monkeypatch):
     monkeypatch.setattr(ghmod, "gh", FakeGH())
     outd = env / "out"
