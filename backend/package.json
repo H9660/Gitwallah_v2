@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "npx -y nodemon server.js"
+    "dev": "npx -y nodemon server.js",
+    "test": "vitest run",
+    "build": "node scripts/check-syntax.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -29,5 +31,8 @@
     "terminal",
     "mern"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
 }

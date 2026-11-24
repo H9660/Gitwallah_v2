@@ -1,0 +1,26 @@
+name: GitCore setup
+description: Python + GitCore deps, Node + backend deps (no native builds)
+inputs:
+  node:
+    description: Also install Node and backend dependencies
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: pip
+        cache-dependency-path: .autose/requirements.txt
+    - shell: bash
+      run: pip install -q -r .autose/requirements.txt
+    - if: inputs.node == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: backend/package-lock.json
+    - if: inputs.node == 'true'
+      shell: bash
+      working-directory: backend
+      run: npm ci --ignore-scripts --no-audit --no-fund

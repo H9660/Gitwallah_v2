@@ -14,7 +14,8 @@ import DuelSession from './DuelSession.js';
 import { getOrGenerateChallenge } from './utilities/challengeUtils.js';
 import { judgeRepo } from './utilities/gitUtils.js';
 import contestRoutes from './routes/contestRoutes.js';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'GitWallah-secret-change-in-production';
 console.log("JWT_SECRET is ", JWT_SECRET)
 const __filename = fileURLToPath(import.meta.url);

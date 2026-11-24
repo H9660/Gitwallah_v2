@@ -1,0 +1,8 @@
+{
+ "number": 1,
+ "title": "Duel: clicking Accept twice resets both terminals and leaks containers",
+ "body": "If the host clicks Accept again (double click or page refresh) while the duel is already running, both terminals reset and the old containers keep running.",
+ "labels": [
+  "autose"
+ ]
+}
