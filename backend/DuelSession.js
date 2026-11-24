@@ -33,6 +33,8 @@ const VALID_TRANSITIONS = Object.freeze({
  *   pre-condition validation.
  * - The session object is the single source of truth for duel state.
  */
+export const DUEL_ROOM_LIFETIME_MS = 30 * 60 * 1000;
+
 class DuelSession {
   /**
    * @param {string} roomId
@@ -87,6 +89,7 @@ class DuelSession {
       difficulty: this.challenge.difficulty,
       hostName: this.host.name,
       challengerName: this.challenger.name,
+      expiresAt: new Date(this.createdAt + DUEL_ROOM_LIFETIME_MS).toISOString(),
     };
   }
 

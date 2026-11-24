@@ -10,7 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 import challengeRoutes from './routes/challengeRoutes.js';
 import connectDB from './utilities/dbUtil.js';
 import * as docker from './docker-helpers.js';
-import DuelSession from './DuelSession.js';
+import DuelSession, { DUEL_ROOM_LIFETIME_MS } from './DuelSession.js';
 import { getOrGenerateChallenge } from './utilities/challengeUtils.js';
 import { judgeRepo } from './utilities/gitUtils.js';
 import contestRoutes from './routes/contestRoutes.js';
@@ -462,7 +462,7 @@ wss.on('connection', (ws) => {
 setInterval(() => {
   const now = Date.now();
   for (const [roomId, session] of sessions) {
-    if (now - session.createdAt > 30 * 60 * 1000) {
+    if (now - session.createdAt > DUEL_ROOM_LIFETIME_MS) {
       console.log(`  ⏰ Room ${roomId} expired`);
       cleanupSession(roomId);
     }
