@@ -2,7 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getAIClient, generateContent } from './aiUtil.js'; 
+import { getAIClient, generateContent, generateChallengeWithLocalModel } from './aiUtil.js'; 
 
 const isWindows = os.platform() === 'win32';
 const NULL_DEVICE = isWindows ? 'nul' : '/dev/null';
