@@ -9,7 +9,7 @@ gitcore/
   checks.py      the stage checks (spec testability, design names real files/functions, build, tests + AC coverage)
   agent_loop.py  JSON-action ReAct loop shared by all agents
   tools.py       read_file / list_dir / grep / write_file / replace_in_file / run_build / run_tests (allow-listed, no shell)
-  brain.py       model adapter: BRAIN=llm (OpenRouter) | slm (Ollama) | fake (scripted); token + USD budget
+  brain.py       model adapter: BRAIN=gemini (Gemini API) | llm (OpenRouter) | slm (Ollama) | fake (scripted); per-role provider/model; token + USD budget
   reviewer.py    stage 6 reviewer + code-enforced anti-rubber-stamp rules
   github.py      every GitHub write (used only by jobs that run no model)
   render.py      Markdown artifacts (spec.md, design.md, test_report.md, pr.md)
@@ -21,10 +21,14 @@ tests/           harness tests (pytest); fixtures/ holds a scripted run for issu
 
 | Kind | Name | Default |
 |---|---|---|
-| Secret | `OPENROUTER_API_KEY` | required (set a hard credit limit on the key) |
-| Variable | `MODEL_BUILDER` | `google/gemini-2.5-flash` |
-| Variable | `MODEL_REVIEWER` | `deepseek/deepseek-chat-v3.1` |
-| Variable | `GITCORE_BRAIN` | `llm` (`slm` needs a reachable OpenAI-compatible server via `OLLAMA_BASE_URL`) |
+| Secret | `GEMINI_API_KEY` | required for the default provider (Google AI Studio key; set a budget/quota on the project) |
+| Secret | `OPENROUTER_API_KEY` | only if `GITCORE_BRAIN=llm` or `GITCORE_BRAIN_REVIEW=llm` |
+| Variable | `GITCORE_BRAIN` | `gemini` (others: `llm` = OpenRouter, `slm` = OpenAI-compatible server via `OLLAMA_BASE_URL`) |
+| Variable | `GITCORE_BRAIN_REVIEW` | empty = same provider as builders; e.g. `llm` to run the reviewer on another vendor via OpenRouter |
+| Variable | `MODEL_BUILDER` | `gemini-2.5-flash` (Gemini API model code, no `google/` prefix) |
+| Variable | `MODEL_REVIEWER` | `gemini-2.5-pro` |
+| Variable | `GITCORE_PRICE_IN` / `GITCORE_PRICE_OUT` | `1.50` / `9.00` USD per 1M tokens, used for the cost cap because the Gemini API reports no cost; `_REVIEW` suffix for reviewer-specific prices |
+| Variable | `GITCORE_REASONING_EFFORT` | `low` (Gemini thinking; empty = provider default) |
 | Variable | `GITCORE_MAX_USD` / `GITCORE_MAX_TOKENS` | `0.50` / `600000` per run |
 | Variable | `GITCORE_VARIANT` | empty; `reviewer_sees_rationale` = experiment E1-A |
 

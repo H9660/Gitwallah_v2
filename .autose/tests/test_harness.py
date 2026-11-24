@@ -173,3 +173,52 @@ def test_agents_cannot_read_run_output_dir(repo):
     with pytest.raises(ToolError):
         Toolbox(repo, "review").read_file("gitcore-out/transcript_implement_1.jsonl")
     assert "gitcore-out" not in Toolbox(repo, "review").list_dir(".")
+
+
+def test_provider_per_role_and_cost_from_configured_prices(monkeypatch):
+    from gitcore.brain import kind_for
+    from gitcore.config import LIMITS
+    monkeypatch.setattr(LIMITS, "max_run_usd", 100.0)
+    monkeypatch.setattr(LIMITS, "max_run_tokens", 10_000_000)
+    monkeypatch.setenv("BRAIN", "gemini")
+    monkeypatch.setenv("BRAIN_REVIEW", "llm")
+    assert kind_for("implement") == "gemini" and kind_for("review") == "llm"
+    monkeypatch.setenv("GITCORE_PRICE_IN", "1.5")
+    monkeypatch.setenv("GITCORE_PRICE_OUT", "9")
+    monkeypatch.setenv("GITCORE_PRICE_IN_REVIEW", "3")
+
+    class U:  # Gemini-style usage: thinking tokens only visible in total_tokens
+        prompt_tokens, completion_tokens, total_tokens, model_extra = 1_000_000, 100_000, 1_200_000, {}
+
+    class R:
+        usage = U()
+
+    b = Brain()
+    b._record("implement", R())
+    assert b.usage.completion_tokens == 200_000              # 100k visible + 100k thinking
+    assert round(b.usage.usd, 4) == round(1.5 + 0.2 * 9, 4)   # 3.30
+    b._record("review", R())
+    assert round(b.usage.by_role["review"]["usd"], 4) == round(3 + 0.2 * 9, 4)
+
+
+def test_non_retryable_http_errors_fail_fast(monkeypatch):
+    calls = []
+
+    class E(Exception):
+        status_code = 402
+
+    class C:
+        class chat:
+            class completions:
+                @staticmethod
+                def create(**kw):
+                    calls.append(kw)
+                    raise E("out of credits")
+
+    monkeypatch.setenv("BRAIN", "gemini")
+    b = Brain()
+    b._clients["gemini"] = C()
+    with pytest.raises(RuntimeError, match="not retried"):
+        b.chat("spec", [{"role": "user", "content": "x"}])
+    assert len(calls) == 1
+    assert calls[0]["reasoning_effort"] == "low"

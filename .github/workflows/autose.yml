@@ -35,9 +35,14 @@ env:
   OUT: ${{ github.workspace }}/gitcore-out
   PYTHONPATH: ${{ github.workspace }}/.autose
   PYTHONDONTWRITEBYTECODE: "1"
-  BRAIN: ${{ vars.GITCORE_BRAIN || 'llm' }}
-  MODEL_BUILDER: ${{ vars.MODEL_BUILDER || 'google/gemini-2.5-flash' }}
-  MODEL_REVIEWER: ${{ vars.MODEL_REVIEWER || 'deepseek/deepseek-chat-v3.1' }}
+  BRAIN: ${{ vars.GITCORE_BRAIN || 'gemini' }}               # gemini | llm (OpenRouter) | slm
+  BRAIN_REVIEW: ${{ vars.GITCORE_BRAIN_REVIEW || '' }}         # optional: other provider for the reviewer
+  MODEL_BUILDER: ${{ vars.MODEL_BUILDER || 'gemini-2.5-flash' }}
+  MODEL_REVIEWER: ${{ vars.MODEL_REVIEWER || 'gemini-2.5-pro' }}
+  GITCORE_PRICE_IN: ${{ vars.GITCORE_PRICE_IN || '1.50' }}     # USD per 1M input tokens (Gemini reports no cost)
+  GITCORE_PRICE_OUT: ${{ vars.GITCORE_PRICE_OUT || '9.00' }}   # USD per 1M output tokens
+  GITCORE_PRICE_IN_REVIEW: ${{ vars.GITCORE_PRICE_IN_REVIEW || '' }}    # optional reviewer-specific prices
+  GITCORE_PRICE_OUT_REVIEW: ${{ vars.GITCORE_PRICE_OUT_REVIEW || '' }}
   GITCORE_MAX_USD: ${{ vars.GITCORE_MAX_USD || '0.50' }}
   GITCORE_MAX_TOKENS: ${{ vars.GITCORE_MAX_TOKENS || '600000' }}
   GITCORE_VARIANT: ${{ inputs.variant || vars.GITCORE_VARIANT || '' }}
@@ -91,6 +96,7 @@ jobs:
         with: { name: gitcore-gate, path: "${{ env.OUT }}" }
       - id: build
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python -m gitcore build --repo . --out "$OUT" --issue-file "$OUT/issue.json"
       - if: always()
@@ -161,6 +167,7 @@ jobs:
         run: gh pr diff ${{ needs.release.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
       - name: Independent reviewer (no GitHub token in env)
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 1 --pr ${{ needs.release.outputs.pr }} --rationale-dir "$OUT/rationale"
       - id: post
@@ -191,6 +198,7 @@ jobs:
         with: { name: gitcore-review-1, path: "${{ runner.temp }}/review1" }
       - id: fix
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           cp "${{ runner.temp }}/review1/review_1.json" "$OUT/review_1.json"
@@ -258,6 +266,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh pr diff ${{ needs.release_2.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
       - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 2 --pr ${{ needs.release_2.outputs.pr }} --rationale-dir "$OUT/rationale"
       - env:
@@ -286,6 +295,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh pr diff ${{ needs.gate.outputs.pr }} --repo "$GITHUB_REPOSITORY" > "$OUT/pr.diff"
       - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python -m gitcore review --repo . --out "$OUT" --issue-file "$OUT/issue.json" --diff-file "$OUT/pr.diff" --round 3 --pr ${{ needs.gate.outputs.pr }}
       - env:

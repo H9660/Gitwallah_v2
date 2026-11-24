@@ -1,10 +1,14 @@
 """Brain adapter: the only module that talks to a model (ADR-006).
 
-BRAIN=llm  -> OpenRouter (OpenAI-compatible), key from OPENROUTER_API_KEY
-BRAIN=slm  -> any OpenAI-compatible local server, e.g. Ollama (OLLAMA_BASE_URL)
-BRAIN=fake -> scripted replies from GITCORE_FAKE_SCRIPT (JSON file), for harness tests
+BRAIN=gemini -> Google Gemini API, OpenAI-compatible endpoint, key from GEMINI_API_KEY
+BRAIN=llm    -> OpenRouter (OpenAI-compatible), key from OPENROUTER_API_KEY
+BRAIN=slm    -> any OpenAI-compatible local server, e.g. Ollama (OLLAMA_BASE_URL)
+BRAIN=fake   -> scripted replies from GITCORE_FAKE_SCRIPT (JSON file), for harness tests
 
-Model per role: MODEL_<ROLE> (e.g. MODEL_REVIEWER), falling back to MODEL_BUILDER.
+Provider per role: BRAIN_<ROLE> (e.g. BRAIN_REVIEW=llm), falling back to BRAIN.
+Model per role: MODEL_<ROLE> (e.g. MODEL_REVIEW), falling back to MODEL_BUILDER.
+Cost: taken from the provider when it reports it (OpenRouter); otherwise computed
+from GITCORE_PRICE_IN / GITCORE_PRICE_OUT (USD per million tokens).
 """
 from __future__ import annotations
 
@@ -59,69 +63,112 @@ class Usage:
         return u
 
 
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# HTTP errors worth retrying. Everything else (400 bad request, 401/403 auth,
+# 402 out of credits, 404 unknown model) fails at once instead of burning retries.
+RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504}
+
+
+def kind_for(role: str) -> str:
+    return (os.environ.get(f"BRAIN_{role.upper()}") or os.environ.get("BRAIN") or "gemini").lower()
+
+
 def model_for(role: str) -> str:
-    return os.environ.get(f"MODEL_{role.upper()}") or os.environ.get("MODEL_BUILDER") or "google/gemini-2.5-flash"
+    return os.environ.get(f"MODEL_{role.upper()}") or os.environ.get("MODEL_BUILDER") or "gemini-2.5-flash"
+
+
+def _price(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name, default))
+    except ValueError:
+        return default
 
 
 class Brain:
     def __init__(self, usage: Usage | None = None):
-        self.kind = os.environ.get("BRAIN", "llm").lower()
+        self.kind = os.environ.get("BRAIN", "gemini").lower()   # default provider; roles may override
         self.usage = usage or Usage()
-        self._client = None
+        self._clients: dict[str, object] = {}
         self._script: dict[str, list] | None = None
 
     # ---------------------------------------------------------------- public
     def chat(self, role: str, messages: list[dict], temperature: float | None = None) -> str:
         self._check_budget()
-        if self.kind == "fake":
+        kind = kind_for(role)
+        if kind == "fake":
             return self._fake(role)
         if temperature is None:
             temperature = 0.0 if role == "review" else 0.2
-        client = self._get_client()
+        client = self._get_client(kind)
         model = model_for(role)
+        kwargs = dict(model=model, messages=messages, temperature=temperature,
+                      max_tokens=LIMITS.max_output_tokens, timeout=LIMITS.llm_timeout_s)
+        if kind == "llm":
+            kwargs["extra_body"] = {"usage": {"include": True}}
+        if kind == "gemini":
+            # Thinking tokens count toward max_tokens and are billed as output;
+            # keep them low so the JSON answer is not cut off. "" disables the parameter.
+            effort = os.environ.get("GITCORE_REASONING_EFFORT", "low")
+            if effort:
+                kwargs["reasoning_effort"] = effort
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                kwargs = dict(model=model, messages=messages, temperature=temperature,
-                              max_tokens=LIMITS.max_output_tokens, timeout=LIMITS.llm_timeout_s)
-                if self.kind == "llm":
-                    kwargs["extra_body"] = {"usage": {"include": True}}
                 resp = client.chat.completions.create(**kwargs)
                 text = (resp.choices[0].message.content or "") if resp.choices else ""
                 self._record(role, resp)
                 return text
             except BudgetExceeded:
                 raise
-            except Exception as e:  # network, 429, 5xx
+            except Exception as e:
                 last_err = e
+                status = getattr(e, "status_code", None)
+                if status is not None and status not in RETRYABLE_STATUS:
+                    raise RuntimeError(f"model call failed ({kind}:{model}), not retried, HTTP {status}: {e}") from e
                 time.sleep(2 * (attempt + 1))
-        raise RuntimeError(f"model call failed after 3 attempts ({model}): {last_err}")
+        raise RuntimeError(f"model call failed after 3 attempts ({kind}:{model}): {last_err}")
 
     # --------------------------------------------------------------- private
-    def _get_client(self):
-        if self._client is None:
+    def _get_client(self, kind: str):
+        if kind not in self._clients:
             from openai import OpenAI
-            if self.kind == "slm":
-                self._client = OpenAI(base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-                                      api_key=os.environ.get("OLLAMA_API_KEY", "ollama"))
-            else:
+            if kind == "slm":
+                client = OpenAI(base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+                                api_key=os.environ.get("OLLAMA_API_KEY", "ollama"))
+            elif kind == "gemini":
+                key = os.environ.get("GEMINI_API_KEY")
+                if not key:
+                    raise RuntimeError("GEMINI_API_KEY is not set")
+                client = OpenAI(base_url=GEMINI_BASE_URL, api_key=key)
+            elif kind == "llm":
                 key = os.environ.get("OPENROUTER_API_KEY")
                 if not key:
                     raise RuntimeError("OPENROUTER_API_KEY is not set")
-                self._client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=key)
-        return self._client
+                client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=key)
+            else:
+                raise RuntimeError(f"unknown BRAIN kind '{kind}' (use gemini, llm, slm or fake)")
+            self._clients[kind] = client
+        return self._clients[kind]
 
     def _record(self, role: str, resp) -> None:
         u = getattr(resp, "usage", None)
         p = getattr(u, "prompt_tokens", 0) or 0
         c = getattr(u, "completion_tokens", 0) or 0
+        total = getattr(u, "total_tokens", 0) or 0
+        # Some providers report thinking tokens only in total_tokens; they are billed as output.
+        hidden = max(0, total - p - c)
+        c += hidden
         cost = None
         if u is not None:
             cost = getattr(u, "cost", None)
             if cost is None and getattr(u, "model_extra", None):
                 cost = u.model_extra.get("cost")
-        if cost is None:  # local model or provider without cost reporting
-            cost = (p + c) / 1_000_000 * float(os.environ.get("GITCORE_USD_PER_MTOK", "0.5"))
+        if cost is None:  # Gemini direct / local: compute from configured prices
+            r = role.upper()
+            pin = _price(f"GITCORE_PRICE_IN_{r}", _price("GITCORE_PRICE_IN", 1.50))
+            pout = _price(f"GITCORE_PRICE_OUT_{r}", _price("GITCORE_PRICE_OUT", 9.00))
+            cost = (p * pin + c * pout) / 1_000_000
         self.usage.add(role, p, c, float(cost))
         self._check_budget()
 
