@@ -29,7 +29,7 @@ def untrusted_issue(issue: dict) -> str:
 
 def extract_json(text: str):
     """Return the first JSON object in `text` (tolerates fences and prose)."""
-    if text is None:
+    if text is None or not text.strip():
         raise ValueError("empty reply")
     t = text.strip()
     t = re.sub(r"^```(?:json)?\s*", "", t)
@@ -74,6 +74,21 @@ class LoopResult:
     error: str = ""
 
 
+def _reply_problem(brain: Brain, e: Exception) -> tuple[str, str]:
+    """(error text for the run record, corrective message for the model) for an unusable reply."""
+    meta = getattr(brain, "last_reply", None) or {}
+    finish, limit = meta.get("finish_reason", "?"), meta.get("max_tokens", "?")
+    if finish == "length":
+        return (f"reply cut off at the output limit (finish_reason=length, max_tokens={limit})",
+                "ERROR: your reply was cut off at the output limit. Reply again with ONE short JSON object "
+                "(keep every string brief, no code, no prose).")
+    if str(e) == "empty reply":
+        return (f"empty reply (finish_reason={finish}, max_tokens={limit})",
+                "ERROR: your reply was empty. Reply now with one JSON object with 'action' and 'args'.")
+    return (f"{e} (finish_reason={finish})",
+            f"ERROR: your reply was not one JSON object with 'action' and 'args' ({e}). Reply again with JSON only.")
+
+
 def run_agent(brain: Brain, role: str, system: str, task: str, tools: Toolbox | None, max_steps: int) -> LoopResult:
     guard = load_prompt("guard.md")
     tool_doc = tools.describe() if tools else '- finish {...}: return your result'
@@ -86,7 +101,7 @@ def run_agent(brain: Brain, role: str, system: str, task: str, tools: Toolbox | 
     bad_replies = 0
     while True:
         reply = brain.chat(role, messages)
-        transcript.append({"role": "assistant", "content": reply})
+        transcript.append({"role": "assistant", "content": reply, **(getattr(brain, "last_reply", None) or {})})
         messages.append({"role": "assistant", "content": reply})
         try:
             action = extract_json(reply)
@@ -96,9 +111,9 @@ def run_agent(brain: Brain, role: str, system: str, task: str, tools: Toolbox | 
                 raise ValueError("args must be an object")
         except (ValueError, AttributeError) as e:
             bad_replies += 1
+            why, obs = _reply_problem(brain, e)
             if bad_replies > 2:
-                return LoopResult("error", steps=steps, transcript=transcript, error=f"unparsable replies: {e}")
-            obs = f"ERROR: your reply was not one JSON object with 'action' and 'args' ({e}). Reply again with JSON only."
+                return LoopResult("error", steps=steps, transcript=transcript, error=f"unparsable replies: {why}")
             messages.append({"role": "user", "content": obs})
             transcript.append({"role": "tool", "content": obs})
             continue
@@ -137,7 +152,6 @@ def single_shot(brain: Brain, role: str, system: str, task: str, retries: int = 
             obj = extract_json(reply)
             return obj.get("args", obj) if obj.get("action") == "finish" else obj
         except ValueError as e:
-            last = e
-            messages += [{"role": "assistant", "content": reply},
-                         {"role": "user", "content": f"ERROR: {e}. Reply with one JSON object only."}]
+            last, obs = _reply_problem(brain, e)
+            messages += [{"role": "assistant", "content": reply}, {"role": "user", "content": obs}]
     raise ValueError(f"no JSON from {role}: {last}")

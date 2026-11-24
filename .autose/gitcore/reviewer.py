@@ -79,6 +79,12 @@ def review_md(r: dict, round_no: int, pr: str, model: str) -> str:
         out += ["### Evidence", ""] + [f"- {e}" for e in r["evidence"]] + [""]
     if r.get("enforcement_notes"):
         out += ["### Enforced by code", ""] + [f"- {n}" for n in r["enforcement_notes"]] + [""]
+    u = r.get("usage") or {}
+    run = os.environ.get("GITHUB_RUN_ID", "")
+    run_link = f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/{run}" if run else "local"
+    # Machine-readable footer: results scripts read tokens, cost and the run from it.
+    out.append(f"Reviewer tokens: {u.get('total_tokens', 0)} (${u.get('usd', 0):.4f}) · Run: {run_link}")
+    out.append("")
     out.append("_The reviewer cannot push and never merges. A maintainer decides._")
     return "\n".join(out) + "\n"
 

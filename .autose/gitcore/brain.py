@@ -91,6 +91,7 @@ class Brain:
         self.usage = usage or Usage()
         self._clients: dict[str, object] = {}
         self._script: dict[str, list] | None = None
+        self.last_reply: dict = {}   # finish_reason / chars / max_tokens of the latest model reply
 
     # ---------------------------------------------------------------- public
     def chat(self, role: str, messages: list[dict], temperature: float | None = None) -> str:
@@ -112,22 +113,34 @@ class Brain:
             effort = os.environ.get("GITCORE_REASONING_EFFORT", "low")
             if effort:
                 kwargs["reasoning_effort"] = effort
-        last_err: Exception | None = None
-        for attempt in range(3):
+        max_out = LIMITS.max_output_tokens
+        cap = max(max_out, LIMITS.max_output_tokens_cap)
+        errors = 0
+        while True:
+            kwargs["max_tokens"] = max_out
             try:
                 resp = client.chat.completions.create(**kwargs)
-                text = (resp.choices[0].message.content or "") if resp.choices else ""
-                self._record(role, resp)
-                return text
-            except BudgetExceeded:
-                raise
             except Exception as e:
-                last_err = e
                 status = getattr(e, "status_code", None)
                 if status is not None and status not in RETRYABLE_STATUS:
                     raise RuntimeError(f"model call failed ({kind}:{model}), not retried, HTTP {status}: {e}") from e
-                time.sleep(2 * (attempt + 1))
-        raise RuntimeError(f"model call failed after 3 attempts ({kind}:{model}): {last_err}")
+                errors += 1
+                if errors >= 3:
+                    raise RuntimeError(f"model call failed after 3 attempts ({kind}:{model}): {e}") from e
+                time.sleep(2 * errors)
+                continue
+            self._record(role, resp)          # may raise BudgetExceeded; that stops the run
+            choice = resp.choices[0] if getattr(resp, "choices", None) else None
+            message = getattr(choice, "message", None)
+            text = (getattr(message, "content", None) or "") if message is not None else ""
+            finish = str(getattr(choice, "finish_reason", None) or "none")
+            self.last_reply = {"finish_reason": finish, "chars": len(text), "max_tokens": max_out}
+            if finish == "length" and max_out < cap:
+                # Cut off (often by hidden thinking, leaving no text at all). A JSON agent cannot use
+                # half an answer, so ask the same question again with a bigger limit.
+                max_out = min(cap, max_out * 2)
+                continue
+            return text
 
     # --------------------------------------------------------------- private
     def _get_client(self, kind: str):

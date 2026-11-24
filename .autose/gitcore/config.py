@@ -35,7 +35,11 @@ def _float(name: str, default: float) -> float:
 class Limits:
     max_run_tokens: int = field(default_factory=lambda: _int("GITCORE_MAX_TOKENS", 600_000))
     max_run_usd: float = field(default_factory=lambda: _float("GITCORE_MAX_USD", 0.30))
-    max_output_tokens: int = field(default_factory=lambda: _int("GITCORE_MAX_OUTPUT_TOKENS", 4096))
+    # Per call. Gemini counts hidden thinking tokens against this, so 4096 was too tight:
+    # a design retry came back empty three times (finish_reason=length, no text).
+    max_output_tokens: int = field(default_factory=lambda: _int("GITCORE_MAX_OUTPUT_TOKENS", 8192))
+    # A reply cut off at the limit is re-asked once per doubling, up to this cap.
+    max_output_tokens_cap: int = field(default_factory=lambda: _int("GITCORE_MAX_OUTPUT_TOKENS_CAP", 16384))
     llm_timeout_s: int = field(default_factory=lambda: _int("GITCORE_LLM_TIMEOUT", 120))
     tool_steps: dict = field(default_factory=lambda: {
         "spec": 0, "design": 15, "implement": 25, "test": 20, "review": 20,

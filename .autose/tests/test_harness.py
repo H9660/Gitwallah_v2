@@ -222,3 +222,49 @@ def test_non_retryable_http_errors_fail_fast(monkeypatch):
         b.chat("spec", [{"role": "user", "content": "x"}])
     assert len(calls) == 1
     assert calls[0]["reasoning_effort"] == "low"
+
+
+def _fake_client(replies, calls):
+    """OpenAI-style client returning (content, finish_reason) pairs in order."""
+    from types import SimpleNamespace as NS
+
+    class C:
+        class chat:
+            class completions:
+                @staticmethod
+                def create(**kw):
+                    calls.append(kw)
+                    content, finish = replies.pop(0)
+                    return NS(choices=[NS(message=NS(content=content), finish_reason=finish)],
+                              usage=NS(prompt_tokens=10, completion_tokens=5, total_tokens=15, model_extra={}))
+    return C()
+
+
+def test_cut_off_reply_is_reasked_with_a_bigger_limit(monkeypatch):
+    from gitcore.config import LIMITS
+    monkeypatch.setattr(LIMITS, "max_output_tokens", 8192)
+    monkeypatch.setattr(LIMITS, "max_output_tokens_cap", 16384)
+    monkeypatch.setenv("BRAIN", "gemini")
+    calls = []
+    b = Brain()
+    # empty + length (thinking used the whole limit), then a real answer
+    b._clients["gemini"] = _fake_client([(None, "length"), ('{"action": "finish", "args": {}}', "stop")], calls)
+    assert b.chat("design", [{"role": "user", "content": "x"}]) == '{"action": "finish", "args": {}}'
+    assert [c["max_tokens"] for c in calls] == [8192, 16384]
+    assert b.last_reply["finish_reason"] == "stop" and b.usage.calls == 2   # both calls are billed
+
+
+def test_cut_off_at_the_cap_reports_the_real_reason(monkeypatch):
+    from gitcore.agent_loop import run_agent
+    from gitcore.config import LIMITS
+    monkeypatch.setattr(LIMITS, "max_output_tokens", 8192)
+    monkeypatch.setattr(LIMITS, "max_output_tokens_cap", 8192)       # no room to grow
+    monkeypatch.setenv("BRAIN", "gemini")
+    calls = []
+    b = Brain()
+    b._clients["gemini"] = _fake_client([("", "length")] * 3, calls)
+    res = run_agent(b, "design", "sys", "task", None, 5)
+    assert res.status == "error"
+    assert "cut off at the output limit" in res.error and "max_tokens=8192" in res.error
+    assert res.transcript[0]["finish_reason"] == "length"
+    assert "cut off" in res.transcript[1]["content"]                     # the model is told why

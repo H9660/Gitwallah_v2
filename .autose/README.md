@@ -30,6 +30,8 @@ tests/           harness tests (pytest); fixtures/ holds a scripted run for issu
 | Variable | `GITCORE_PRICE_IN` / `GITCORE_PRICE_OUT` | `1.50` / `9.00` USD per 1M tokens, used for the cost cap because the Gemini API reports no cost; `_REVIEW` suffix for reviewer-specific prices |
 | Variable | `GITCORE_REASONING_EFFORT` | `low` (Gemini thinking; empty = provider default) |
 | Variable | `GITCORE_MAX_USD` / `GITCORE_MAX_TOKENS` | `0.50` / `600000` per run |
+| Variable | `GITCORE_MAX_OUTPUT_TOKENS` / `GITCORE_MAX_OUTPUT_TOKENS_CAP` | `8192` / `16384` per call. Gemini thinking counts against it; a reply cut off at the limit (`finish_reason=length`) is asked again with double the limit, up to the cap |
+| Variable | `GITCORE_REASONING_EFFORT` | `low` (gemini: `none`/`low`/`medium`/`high`; empty disables the parameter) |
 | Variable | `GITCORE_VARIANT` | empty; `reviewer_sees_rationale` = experiment E1-A |
 
 Also enable *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"*, or `gh pr create` fails with `GITHUB_TOKEN`.
