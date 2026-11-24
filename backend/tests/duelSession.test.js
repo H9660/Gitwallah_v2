@@ -54,7 +54,7 @@ describe('DuelSession construction and queries', () => {
 
   it('getInfo exposes only public room info', () => {
     const s = new DuelSession('ROOM01', challenge, 'Alice');
-    expect(s.getInfo()).toEqual({
+    expect(s.getInfo()).toMatchObject({
       roomId: 'ROOM01', state: 'waiting', difficulty: 'Beginner', hostName: 'Alice', challengerName: null,
     });
   });

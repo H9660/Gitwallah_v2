@@ -87,6 +87,7 @@ class DuelSession {
       difficulty: this.challenge.difficulty,
       hostName: this.host.name,
       challengerName: this.challenger.name,
+      expiresAt: Math.floor(this.createdAt / 1000) + 1800,
     };
   }
 
